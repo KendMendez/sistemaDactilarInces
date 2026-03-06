@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('feriados', function (Blueprint $table) {
             $table->id();
+            $table->string('descripcion');
+            $table->date('fecha');
             $table->timestamps();
         });
     }

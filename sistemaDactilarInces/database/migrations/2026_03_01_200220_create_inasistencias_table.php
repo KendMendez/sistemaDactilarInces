@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('inasistencias', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_empleado')->constrained(
+                table: 'empleados',
+                indexName: 'inasistencia_empleado_id'
+            );
+            $table->date('fecha');
+            $table->string('justificacion');
             $table->timestamps();
         });
     }

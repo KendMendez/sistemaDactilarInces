@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('horarios', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_empleado')->constrained(
+                table: 'empleados',
+                indexName: 'horarios_empleado_id'
+            );
+            $table->string('dia');
+            $table->string('hora_entrada_esperada');
+            $table->string('hora_salida_esperada');
             $table->timestamps();
         });
     }

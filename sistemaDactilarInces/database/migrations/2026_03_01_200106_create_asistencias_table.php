@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('asistencias', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_empleado')->constrained(
+                table: 'empleados',
+                indexName: 'asistencia_empleado_id'
+            );
+            $table->date('fecha');
+            $table->string('hora_entrada');
+            $table->string('hora_salida');
             $table->timestamps();
         });
     }

@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('role_privilegios', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_role')->constrained(
+                table: 'roles',
+                indexName: 'role_id'
+            );
+            $table->foreignId('id_privilegio')->constrained(
+                table: 'privilegios',
+                indexName: 'privilegio_id'
+            );
             $table->timestamps();
         });
     }

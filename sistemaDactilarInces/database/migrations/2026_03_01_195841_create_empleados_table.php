@@ -13,6 +13,20 @@ return new class extends Migration
     {
         Schema::create('empleados', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_cargo')->constrained(
+                table: 'cargos',
+                indexName: 'empleados_cargo_id'
+            );  
+            $table->string('nombre');
+            $table->string('apellido');
+            $table->string('telefono');
+            $table->string('identificacion');
+            $table->string('correo');
+            $table->string('contraseña');
+            $table->string('foto');
+            $table->string('sexo');
+            $table->string('huella_pulgar');
+            $table->string('huella_indice');
             $table->timestamps();
         });
     }

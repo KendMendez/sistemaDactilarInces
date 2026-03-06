@@ -11,6 +11,7 @@ class Empleado extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
+        'id_cargo',
         'nombre',
         'apellido',
         'telefono',
