@@ -8,25 +8,9 @@ use Illuminate\Http\Request;
 class EmpleadoController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function stored(Request $request)
     {
         //
     }
@@ -40,17 +24,9 @@ class EmpleadoController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Empleado $empleado)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Empleado $empleado)
+    public function updated(Request $request, Empleado $empleado)
     {
         //
     }
@@ -58,7 +34,7 @@ class EmpleadoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Empleado $empleado)
+    public function deleted(Empleado $empleado)
     {
         //
     }

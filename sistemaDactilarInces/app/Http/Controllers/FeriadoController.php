@@ -8,25 +8,9 @@ use Illuminate\Http\Request;
 class FeriadoController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function stored(Request $request)
     {
         //
     }
@@ -40,17 +24,9 @@ class FeriadoController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Feriado $feriado)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Feriado $feriado)
+    public function updated(Request $request, Feriado $feriado)
     {
         //
     }
@@ -58,7 +34,7 @@ class FeriadoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Feriado  $feriado)
+    public function deleted(Feriado  $feriado)
     {
         //
     }
