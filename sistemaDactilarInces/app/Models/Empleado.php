@@ -21,13 +21,16 @@ class Empleado extends Authenticatable
         'foto',
         'sexo',
         'huella_pulgar',
-        'huella_indice'
+        'huella_indice',
+        'reset_token',
+        'reset_token_expira',
     ];
 
     public function getAuthPassword()
     {
         return $this->contraseña;
     }
+
     public function getAuthIdentifierName()
     {
         return 'correo';

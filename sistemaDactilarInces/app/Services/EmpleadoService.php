@@ -9,7 +9,7 @@ class EmpleadoService
 {
     public function store(Request $req)
     {
-        //la funcion debe tener un hash make
+        //la funcion debe tener un hash:make('contraseña')
     }
 
 
