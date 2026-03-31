@@ -17,39 +17,39 @@ class EmpleadoAuthService
 {
     public function login(array $auth)
     {
-        $msg = 'Bienvenido';
-        $error = 0;
+        $message = 'Bienvenido';
+        $errorCode = 0;
         $key = env('JWT_SECRET');
 
         $time = time();
         $sessionTime = (60 * 60);
         $sessionExpired = $time + $sessionTime;
 
-        $findEmpleado = Empleado::select('id', 'nombre', 'apellido', 'contraseña')->where([
+        $foundEmployee = Empleado::select('id', 'nombre', 'apellido', 'contraseña')->where([
             ['correo', '=', $auth['correo']],
         ])->first();
 
-        $payload = [];
+        $response = [];
 
-        if ($findEmpleado && Hash::check($auth['contraseña'], $findEmpleado['contraseña'])) {
-            $token = JWT::encode(['user' => $findEmpleado->id], $key, 'HS256');
-            $payload = [
+        if ($foundEmployee && Hash::check($auth['contraseña'], $foundEmployee['contraseña'])) {
+            $token = JWT::encode(['user' => $foundEmployee->id], $key, 'HS256');
+            $response = [
                 'iat' => $time,
                 'expired' => $sessionExpired,
                 'token' => $token,
-                'msg' => $msg,
-                'error' => $error,
+                'msg' => $message,
+                'error' => $errorCode,
                 'empleado' => [
-                    'nombre' => $findEmpleado['nombre'],
-                    'apellido' => $findEmpleado['apellido'],
+                    'nombre' => $foundEmployee['nombre'],
+                    'apellido' => $foundEmployee['apellido'],
                 ],
             ];
         }
 
-        return $payload;
+        return $response;
     }
 
-    public function registrarIntento(
+    public function registerAttempt(
         ?string $correo,
         Request $request,
         bool $exito,
@@ -64,7 +64,7 @@ class EmpleadoAuthService
         ]);
     }
 
-    public function crearCookieSesion(string $token): Cookie
+    public function createSessionCookie(string $token): Cookie
     {
         return cookie(
             'token',
@@ -77,7 +77,7 @@ class EmpleadoAuthService
         );
     }
 
-    public function eliminarCookieSesion(): Cookie
+    public function deleteSessionCookie(): Cookie
     {
         return cookie()->forget('token');
     }

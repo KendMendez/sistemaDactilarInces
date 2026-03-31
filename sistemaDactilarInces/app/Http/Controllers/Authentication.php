@@ -17,13 +17,13 @@ class Authentication extends Controller
             $correo = $req->input('correo');
             $contrasena = $req->input('contraseña');
 
-            $logged = $this->authService->login([
+            $authenticated = $this->authService->login([
                 'correo' => $correo,
                 'contraseña' => $contrasena,
             ]);
 
-            if (! $logged) {
-                $this->authService->registrarIntento($correo, $req, false);
+            if (! $authenticated) {
+                $this->authService->registerAttempt($correo, $req, false);
 
                 return response()->json([
                     'error' => 1,
@@ -31,20 +31,20 @@ class Authentication extends Controller
                 ], 401);
             }
 
-            $this->authService->registrarIntento($correo, $req, true, $logged['empleado'] ?? null);
+            $this->authService->registerAttempt($correo, $req, true, $authenticated['empleado'] ?? null);
 
-            $cookie = $this->authService->crearCookieSesion($logged['token']);
+            $cookie = $this->authService->createSessionCookie($authenticated['token']);
 
             return response()->json([
                 'error' => 0,
                 'msg' => 'Inicio de sesión exitoso',
                 'results' => [
-                    'empleado' => $logged['empleado'] ?? null,
+                    'empleado' => $authenticated['empleado'] ?? null,
                 ],
             ], 200)->withCookie($cookie);
 
         } catch (\Exception $e) {
-            $this->authService->registrarIntento($req->input('correo'), $req, false);
+            $this->authService->registerAttempt($req->input('correo'), $req, false);
 
             return response()->json([
                 'error' => 1,
@@ -55,7 +55,7 @@ class Authentication extends Controller
 
     public function logout(): JsonResponse
     {
-        $cookie = $this->authService->eliminarCookieSesion();
+        $cookie = $this->authService->deleteSessionCookie();
 
         return response()->json([
             'error' => 0,
@@ -93,8 +93,8 @@ class Authentication extends Controller
     {
         try {
             $token = $req->input('token');
-            $contrasena = $req->input('password');
-            $confirmar_contrasena = $req->input('password_confirmation');
+            $contrasena = $req->input('contraseña');
+            $confirmarContrasena = $req->input('confirmar_contraseña');
 
             if (! $token || ! $contrasena) {
                 return response()->json([
@@ -103,7 +103,7 @@ class Authentication extends Controller
                 ], 400);
             }
 
-            if ($contrasena !== $confirmar_contrasena) {
+            if ($contrasena !== $confirmarContrasena) {
                 return response()->json([
                     'error' => 1,
                     'msg' => 'Las contraseñas no coinciden',

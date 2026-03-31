@@ -9,6 +9,6 @@ class Inasistencia extends Model
     protected $fillable = [
         'id_empleado',
         'fecha',
-        'justificacion'
+        'justificacion',
     ];
 }

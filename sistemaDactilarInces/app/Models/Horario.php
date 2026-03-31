@@ -10,6 +10,6 @@ class Horario extends Model
         'id_empleado',
         'dia',
         'hora_entrada_esperada',
-        'hora_salida_esperada'
+        'hora_salida_esperada',
     ];
 }

@@ -8,6 +8,6 @@ class Feriado extends Model
 {
     protected $fillable = [
         'fecha',
-        'descripcion'
+        'descripcion',
     ];
 }

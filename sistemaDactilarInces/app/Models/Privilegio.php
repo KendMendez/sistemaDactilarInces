@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Privilegio extends Model
 {
- protected $fillable = [
-    'privilegio'
- ];
+    protected $fillable = [
+        'privilegio',
+    ];
 }

@@ -10,6 +10,6 @@ class Asistencia extends Model
         'id_empleado',
         'fecha',
         'hora_entrada',
-        'hora_salida'
+        'hora_salida',
     ];
 }

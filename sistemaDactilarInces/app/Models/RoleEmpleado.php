@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class RoleEmpleado extends Model
 {
     protected $fillable = [
-        "id_empleado",
-        "id_role"
+        'id_empleado',
+        'id_role',
     ];
 }

@@ -34,7 +34,7 @@ class FeriadoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function deleted(Feriado  $feriado)
+    public function deleted(Feriado $feriado)
     {
         //
     }
