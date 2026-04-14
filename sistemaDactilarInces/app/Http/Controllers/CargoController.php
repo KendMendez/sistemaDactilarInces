@@ -3,21 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\Message;
-use App\Services\FeriadoService;
+use App\Services\CargoService;
 use Illuminate\Http\Request;
 
-class FeriadoController extends Controller
+class CargoController extends Controller
 {
-    public function __construct(protected FeriadoService $feriadoService) {}
+    public function __construct(protected CargoService $cargoService) {}
 
     public function index()
     {
         try {
-            $feriadosFound = $this->feriadoService->index();
+            $cargosFound = $this->cargoService->index();
             $res = [
                 'msg' => '',
                 'error' => 0,
-                'results' => $feriadosFound,
+                'results' => $cargosFound,
             ];
 
             return response(json_encode($res), 200);
@@ -29,11 +29,11 @@ class FeriadoController extends Controller
     public function showById(string $id)
     {
         try {
-            $feriadoFound = $this->feriadoService->showById($id);
+            $cargoFound = $this->cargoService->showById($id);
             $res = [
                 'msg' => '',
                 'error' => 0,
-                'results' => $feriadoFound,
+                'results' => $cargoFound,
             ];
 
             return response(json_encode($res), 200);
@@ -48,15 +48,15 @@ class FeriadoController extends Controller
             $error = 0;
             $msg = Message::stored();
 
-            $feriadoStored = $this->feriadoService->store($req->input());
-            if (! $feriadoStored) {
+            $cargoStored = $this->cargoService->store($req->input());
+            if (! $cargoStored) {
                 $error = 1;
                 $msg = Message::duplicated();
             }
             $res = [
                 'msg' => $msg,
                 'error' => $error,
-                'results' => $feriadoStored,
+                'results' => $cargoStored,
             ];
 
             return response(json_encode($res), 201);
@@ -70,15 +70,15 @@ class FeriadoController extends Controller
         try {
             $error = 0;
             $msg = Message::updated();
-            $feriadoUpdated = $this->feriadoService->update($id, $req->input());
-            if (! $feriadoUpdated) {
+            $cargoUpdated = $this->cargoService->update($id, $req->input());
+            if (! $cargoUpdated) {
                 $error = 1;
                 $msg = Message::duplicated();
             }
             $res = [
                 'error' => $error,
                 'msg' => $msg,
-                'results' => $feriadoUpdated,
+                'results' => $cargoUpdated,
             ];
 
             return response(json_encode($res), 200);
@@ -90,7 +90,7 @@ class FeriadoController extends Controller
     public function delete(string $id)
     {
         try {
-            $this->feriadoService->delete($id);
+            $this->cargoService->delete($id);
 
             return response(json_encode(['error' => 0, 'msg' => Message::deleted()]), 200);
         } catch (\Exception $e) {
