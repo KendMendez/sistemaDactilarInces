@@ -10,4 +10,8 @@ class Feriado extends Model
         'fecha',
         'descripcion',
     ];
+
+    protected $casts = [
+        'fecha' => 'date:Y-m-d',
+    ];
 }

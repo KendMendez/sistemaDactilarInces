@@ -83,6 +83,7 @@ class CargoController extends Controller
 
             return response(json_encode($res), 200);
         } catch (\Exception $e) {
+
             return response(json_encode(['error' => 1, 'msg' => Message::exception()]), 500);
         }
     }

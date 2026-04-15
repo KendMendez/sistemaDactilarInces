@@ -51,7 +51,7 @@ test('update modifies an existing feriado', function () {
     $encryptedId = Crypt::encrypt($feriado->id);
 
     $response = $this->putJson("/api/feriado/update{$encryptedId}", [
-        'fecha' => '2026-01-02',
+        'fecha' => '02/01/2026',
         'descripcion' => 'Año Nuevo Actualizado',
     ]);
 
