@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\Message;
 use App\Services\FeriadoService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class FeriadoController extends Controller
 {
@@ -45,10 +46,19 @@ class FeriadoController extends Controller
     public function store(Request $req)
     {
         try {
+            $validator = Validator::make($req->all(), [
+                'fecha' => 'required|string',
+                'descripcion' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['error' => 1, 'msg' => $validator->errors()->first()], 400);
+            }
+
             $error = 0;
             $msg = Message::stored();
 
-            $feriadoStored = $this->feriadoService->store($req->input());
+            $feriadoStored = $this->feriadoService->store($validator->validated());
             if (! $feriadoStored) {
                 $error = 1;
                 $msg = Message::duplicated();
@@ -61,6 +71,8 @@ class FeriadoController extends Controller
 
             return response(json_encode($res), 201);
         } catch (\Exception $e) {
+            dd($e);
+
             return response(json_encode(['error' => 1, 'msg' => Message::exception()]), 500);
         }
     }
@@ -68,9 +80,18 @@ class FeriadoController extends Controller
     public function update(Request $req, string $id)
     {
         try {
+            $validator = Validator::make($req->all(), [
+                'fecha' => 'required|string',
+                'descripcion' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['error' => 1, 'msg' => $validator->errors()->first()], 400);
+            }
+
             $error = 0;
             $msg = Message::updated();
-            $feriadoUpdated = $this->feriadoService->update($id, $req->input());
+            $feriadoUpdated = $this->feriadoService->update($id, $validator->validated());
             if (! $feriadoUpdated) {
                 $error = 1;
                 $msg = Message::duplicated();

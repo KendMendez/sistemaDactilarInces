@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Feriado;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Crypt;
 
 class FeriadoService
@@ -34,26 +35,45 @@ class FeriadoService
 
     public function store(array $feriado)
     {
-        $exists = Feriado::where('fecha', $feriado['fecha'])->exists();
+        $fechaInput = $feriado['fecha'];
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaInput)) {
+            $fechaParsed = $fechaInput;
+        } else {
+            $fechaParsed = Carbon::createFromFormat('d/m/Y', $fechaInput)->format('Y-m-d');
+        }
+
+        $exists = Feriado::where('fecha', $fechaParsed)->exists();
 
         if ($exists) {
             return false;
         } else {
-            return Feriado::create($feriado);
+            return Feriado::create([
+                'fecha' => $fechaParsed,
+                'descripcion' => $feriado['descripcion'],
+            ]);
         }
     }
 
     public function update(string $id, array $feriado)
     {
         $decryptedId = Crypt::decrypt($id);
+        $fechaInput = $feriado['fecha'];
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaInput)) {
+            $fechaParsed = $fechaInput;
+        } else {
+            $fechaParsed = Carbon::createFromFormat('d/m/Y', $fechaInput)->format('Y-m-d');
+        }
+
         $findFeriado = Feriado::select('id')->where([
-            ['fecha', '=', $feriado['fecha']],
+            ['fecha', '=', $fechaParsed],
             ['id', '!=', $decryptedId],
         ])->first();
 
         if (! $findFeriado) {
             Feriado::where('id', '=', $decryptedId)->update([
-                'fecha' => $feriado['fecha'],
+                'fecha' => $fechaParsed,
                 'descripcion' => $feriado['descripcion'],
             ]);
 
