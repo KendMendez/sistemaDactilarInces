@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('empleados', function (Blueprint $table) {
-            $table->string('reset_token')->nullable()->after('contraseña');
-            $table->timestamp('reset_token_expira')->nullable()->after('reset_token');
+            $table->dropColumn(['reset_token', 'reset_token_expira']);
         });
     }
 
@@ -23,7 +22,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('empleados', function (Blueprint $table) {
-            $table->dropColumn(['reset_token', 'reset_token_expira']);
+            $table->string('reset_token')->nullable()->after('contraseña');
+            $table->timestamp('reset_token_expira')->nullable()->after('reset_token');
         });
     }
 };

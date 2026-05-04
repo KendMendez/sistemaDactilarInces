@@ -12,6 +12,8 @@ Route::prefix('rol')->group(base_path('routes/rol.php'));
 
 Route::prefix('privilegio')->group(base_path('routes/privilegio.php'));
 
+Route::prefix('role-privilegio')->group(base_path('routes/role-privilegio.php'));
+
 Route::middleware('jwt.auth')->group(function () {
     // Other protected routes
 });
