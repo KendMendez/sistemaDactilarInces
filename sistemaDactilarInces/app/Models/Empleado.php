@@ -22,8 +22,6 @@ class Empleado extends Authenticatable
         'sexo',
         'huella_pulgar',
         'huella_indice',
-        'reset_token',
-        'reset_token_expira',
     ];
 
     public function getAuthPassword()
