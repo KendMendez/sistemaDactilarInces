@@ -8,6 +8,6 @@ class HuellaDactilar extends Model
 {
     protected $fillable = [
         'huella_pulgar',
-        'huella_indice'
+        'huella_indice',
     ];
 }
