@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Cargo;
 use App\Models\Empleado;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -19,7 +20,7 @@ class EmpleadoSeeder extends Seeder
         $existeEmpleado = Empleado::where('correo', 'admin@test.com')->exists();
 
         if (! $existeEmpleado) {
-            Empleado::create([
+            $empleado = Empleado::create([
                 'id_cargo' => $cargo->id,
                 'nombre' => 'Admin',
                 'apellido' => 'Sistema',
@@ -33,9 +34,13 @@ class EmpleadoSeeder extends Seeder
                 'huella_indice' => '',
             ]);
 
+            $adminRole = Role::where('role', 'Administrador')->first();
+            $empleado->roles()->attach($adminRole->id);
+
             $this->command->info('Usuario de prueba creado:');
             $this->command->info('  Correo: admin@test.com');
             $this->command->info('  Contraseña: password123');
+            $this->command->info('  Rol: Administrador');
         } else {
             $this->command->info('El usuario de prueba ya existe.');
         }

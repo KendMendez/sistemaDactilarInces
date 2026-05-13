@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(base_path('routes/auth.php'));
 
-Route::middleware(['jwt.auth', 'privilegio:view_cargos'])->prefix('cargo')->group(base_path('routes/cargo.php'));
+Route::middleware(['jwt.auth', 'role:Administrador'])->prefix('cargo')->group(base_path('routes/cargo.php'));
 
 Route::middleware(['jwt.auth', 'privilegio:view_holidays'])->prefix('feriado')->group(base_path('routes/feriado.php'));
 
