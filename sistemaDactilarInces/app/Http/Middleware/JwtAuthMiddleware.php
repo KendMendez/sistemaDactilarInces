@@ -13,12 +13,29 @@ class JwtAuthMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $token = $request->cookie('token');
+        $token = $request->cookie('token') ?? $request->header('Authorization');
+
+        if (str_starts_with($token, 'Bearer ')) {
+            $token = substr($token, 7);
+        }
+
+        if (! $token) {
+            $cookieHeader = $request->header('Cookie');
+            if ($cookieHeader) {
+                if (preg_match('/token=([^;]+)/', $cookieHeader, $matches)) {
+                    $token = $matches[1];
+                }
+            }
+        }
 
         if (! $token) {
             return response()->json([
                 'error' => 1,
-                'msg' => 'No autenticado. Token no proporcionado.',
+                'msg' => 'Acceso denegado. Debe iniciar sesión.',
+                'debug' => [
+                    'has_cookie_header' => (bool) $request->header('Cookie'),
+                    'cookie_header' => $request->header('Cookie'),
+                ],
             ], 401);
         }
 
@@ -26,7 +43,7 @@ class JwtAuthMiddleware
             $key = env('JWT_SECRET');
             $decoded = JWT::decode($token, new Key($key, 'HS256'));
 
-            $empleado = Empleado::find($decoded->user);
+            $empleado = Empleado::with('roles')->find($decoded->user);
 
             if (! $empleado) {
                 return response()->json([
@@ -55,7 +72,7 @@ class JwtAuthMiddleware
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 1,
-                'msg' => 'Error al autenticar.',
+                'msg' => 'Error al autenticar: '.$e->getMessage(),
             ], 401);
         }
     }
