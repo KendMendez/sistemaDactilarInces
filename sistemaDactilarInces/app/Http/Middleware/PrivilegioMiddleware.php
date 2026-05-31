@@ -19,15 +19,13 @@ class PrivilegioMiddleware
             ], 401);
         }
 
-        $empleadoRoles = $empleado->roles()->pluck('role')->toArray();
+        $empleadoRoles = $empleado->roles->pluck('role')->toArray();
 
         if (in_array('Administrador', $empleadoRoles)) {
             return $next($request);
         }
 
-        $empleadoPrivilegios = $empleado->roles()
-            ->with('privilegios')
-            ->get()
+        $empleadoPrivilegios = $empleado->roles
             ->pluck('privilegios.*.privilegio')
             ->flatten()
             ->unique()

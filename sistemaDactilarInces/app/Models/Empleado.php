@@ -11,6 +11,12 @@ class Empleado extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    protected $hidden = [
+        'contraseña',
+        'huella_pulgar',
+        'huella_indice',
+    ];
+
     protected $fillable = [
         'id_cargo',
         'nombre',

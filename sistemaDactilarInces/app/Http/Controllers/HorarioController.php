@@ -20,9 +20,9 @@ class HorarioController extends Controller
                 'results' => $horariosFound,
             ];
 
-            return response(json_encode($res), 200);
+            return response()->json($res, 200);
         } catch (\Exception $e) {
-            return response(json_encode(['msg' => Message::exception(), 'error' => 1]), 500);
+            return response()->json(['msg' => Message::exception(), 'error' => 1], 500);
         }
     }
 
@@ -36,9 +36,9 @@ class HorarioController extends Controller
                 'results' => $horarioFound,
             ];
 
-            return response(json_encode($res), 200);
+            return response()->json($res, 200);
         } catch (\Exception $e) {
-            return response(json_encode(['error' => 1, 'msg' => Message::exception()]), 500);
+            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }
     }
 
@@ -59,9 +59,9 @@ class HorarioController extends Controller
                 'results' => $horarioStored,
             ];
 
-            return response(json_encode($res), 201);
+            return response()->json($res, 201);
         } catch (\Exception $e) {
-            return response(json_encode(['error' => 1, 'msg' => Message::exception()]), 500);
+            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }
     }
 
@@ -81,9 +81,9 @@ class HorarioController extends Controller
                 'results' => $horarioUpdated,
             ];
 
-            return response(json_encode($res), 200);
+            return response()->json($res, 200);
         } catch (\Exception $e) {
-            return response(json_encode(['error' => 1, 'msg' => Message::exception()]), 500);
+            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }
     }
 
@@ -92,9 +92,9 @@ class HorarioController extends Controller
         try {
             $this->horarioService->delete($id);
 
-            return response(json_encode(['error' => 0, 'msg' => Message::deleted()]), 200);
+            return response()->json(['error' => 0, 'msg' => Message::deleted()], 200);
         } catch (\Exception $e) {
-            return response(json_encode(['error' => 1, 'msg' => Message::exception()]), 500);
+            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }
     }
 }

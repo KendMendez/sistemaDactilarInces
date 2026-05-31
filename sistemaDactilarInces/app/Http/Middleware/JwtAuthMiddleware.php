@@ -40,10 +40,10 @@ class JwtAuthMiddleware
         }
 
         try {
-            $key = env('JWT_SECRET');
+            $key = config('jwt.secret');
             $decoded = JWT::decode($token, new Key($key, 'HS256'));
 
-            $empleado = Empleado::with('roles')->find($decoded->user);
+            $empleado = Empleado::with('roles.privilegios')->find($decoded->user);
 
             if (! $empleado) {
                 return response()->json([

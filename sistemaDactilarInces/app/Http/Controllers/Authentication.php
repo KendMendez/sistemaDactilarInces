@@ -17,9 +17,23 @@ class Authentication extends Controller
             $correo = $req->input('correo');
             $contrasena = $req->input('contraseña');
 
+            \Log::debug('[Login] Request received', [
+                'correo' => $correo,
+                'contrasena_present' => !is_null($contrasena),
+                'contrasena_length' => is_string($contrasena) ? strlen($contrasena) : null,
+                'all_input' => $req->all(),
+                'content_type' => $req->header('Content-Type'),
+                'method' => $req->method(),
+            ]);
+
             $authenticated = $this->authService->login([
                 'correo' => $correo,
                 'contraseña' => $contrasena,
+            ]);
+
+            \Log::debug('[Login] Service result', [
+                'authenticated' => $authenticated ? 'truthy' : 'falsy',
+                'result_keys' => $authenticated ? array_keys($authenticated) : [],
             ]);
 
             if (! $authenticated) {
@@ -40,6 +54,7 @@ class Authentication extends Controller
                 'msg' => 'Inicio de sesión exitoso',
                 'results' => [
                     'empleado' => $authenticated['empleado'] ?? null,
+                    'token' => $authenticated['token'] ?? null,
                 ],
             ], 200)->withCookie($cookie);
 

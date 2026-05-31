@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Cargo;
+use App\Models\Empleado;
 use Illuminate\Support\Facades\Crypt;
 
 class CargoService
@@ -60,10 +61,24 @@ class CargoService
         }
     }
 
-    public function delete(string $id)
+    public function delete(string $id, bool $force = false)
     {
         $decryptedId = Crypt::decrypt($id);
-        Cargo::where('id', '=', $decryptedId)->delete();
+
+        $empleadosCount = Empleado::where('id_cargo', $decryptedId)->count();
+
+        if ($empleadosCount > 0 && ! $force) {
+            return [
+                'requires_confirmation' => true,
+                'msg' => 'Este cargo tiene ' . $empleadosCount . ' empleado(s) asignado(s). ¿Está seguro de eliminarlo?',
+                'dependencies' => [
+                    'empleados' => $empleadosCount,
+                ],
+            ];
+        }
+
+        Empleado::where('id_cargo', $decryptedId)->update(['id_cargo' => null]);
+        Cargo::where('id', $decryptedId)->delete();
 
         return true;
     }

@@ -20,9 +20,9 @@ class EmpleadoController extends Controller
                 'results' => $empleadosFound,
             ];
 
-            return response(json_encode($res), 200);
+            return response()->json($res, 200);
         } catch (\Exception $e) {
-            return response(json_encode(['msg' => Message::exception(), 'error' => 1]), 500);
+            return response()->json(['msg' => Message::exception(), 'error' => 1], 500);
         }
     }
 
@@ -36,9 +36,9 @@ class EmpleadoController extends Controller
                 'results' => $empleadoFound,
             ];
 
-            return response(json_encode($res), 200);
+            return response()->json($res, 200);
         } catch (\Exception $e) {
-            return response(json_encode(['error' => 1, 'msg' => Message::exception()]), 500);
+            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }
     }
 
@@ -59,9 +59,9 @@ class EmpleadoController extends Controller
                 'results' => $empleadoStored,
             ];
 
-            return response(json_encode($res), 201);
+            return response()->json($res, 201);
         } catch (\Exception $e) {
-            return response(json_encode(['error' => 1, 'msg' => $e->getMessage()]), 500);
+            return response()->json(['error' => 1, 'msg' => $e->getMessage()], 500);
         }
     }
 
@@ -81,20 +81,29 @@ class EmpleadoController extends Controller
                 'results' => $empleadoUpdated,
             ];
 
-            return response(json_encode($res), 200);
+            return response()->json($res, 200);
         } catch (\Exception $e) {
-            return response(json_encode(['error' => 1, 'msg' => $e->getMessage()]), 500);
+            return response()->json(['error' => 1, 'msg' => $e->getMessage()], 500);
         }
     }
 
-    public function delete(string $id)
+    public function delete(Request $req, string $id)
     {
         try {
-            $this->empleadoService->delete($id);
+            $result = $this->empleadoService->delete($id, $req->boolean('force'));
 
-            return response(json_encode(['error' => 0, 'msg' => Message::deleted()]), 200);
+            if (is_array($result)) {
+                return response()->json([
+                    'error' => 0,
+                    'requires_confirmation' => true,
+                    'msg' => $result['msg'],
+                    'dependencies' => $result['dependencies'],
+                ], 409);
+            }
+
+            return response()->json(['error' => 0, 'msg' => Message::deleted()], 200);
         } catch (\Exception $e) {
-            return response(json_encode(['error' => 1, 'msg' => Message::exception()]), 500);
+            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }
     }
 }

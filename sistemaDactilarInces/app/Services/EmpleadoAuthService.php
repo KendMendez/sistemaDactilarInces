@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\Empleado;
 use App\Models\LoginLog;
+use Carbon\Carbon;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\Cookie;
 
 class EmpleadoAuthService
@@ -15,7 +17,7 @@ class EmpleadoAuthService
     {
         $message = 'Bienvenido';
         $errorCode = 0;
-        $key = env('JWT_SECRET');
+        $key = config('jwt.secret');
 
         $time = time();
         $sessionTime = (60 * 60);
@@ -25,7 +27,14 @@ class EmpleadoAuthService
             ['correo', '=', $auth['correo']],
         ])->first();
 
-        $response = [];
+        \Log::debug('[AuthService] Employee lookup', [
+            'correo' => $auth['correo'],
+            'found' => $foundEmployee ? 'yes' : 'no',
+            'auth_contraseña' => $auth['contraseña'] ?? 'MISSING',
+            'auth_contraseña_len' => is_string($auth['contraseña']) ? strlen($auth['contraseña']) : null,
+        ]);
+
+        $response = null;
 
         if ($foundEmployee && Hash::check($auth['contraseña'], $foundEmployee['contraseña'])) {
             $token = JWT::encode(['user' => $foundEmployee->id], $key, 'HS256');
@@ -41,6 +50,12 @@ class EmpleadoAuthService
                 ],
             ];
         }
+
+        \Log::debug('[AuthService] Login result', [
+            'employee_found' => $foundEmployee ? 'yes' : 'no',
+            'response_empty' => empty($response) ? 'yes' : 'no',
+            'hash_check_called' => $foundEmployee ? 'yes' : 'N/A',
+        ]);
 
         return $response;
     }

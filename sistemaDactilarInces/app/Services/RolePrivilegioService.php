@@ -41,7 +41,9 @@ class RolePrivilegioService
     public function store(array $rolePrivilegio)
     {
         $decryptedRoleId = Crypt::decrypt($rolePrivilegio['roleId']);
-        $arrPrivilegioId = json_decode($rolePrivilegio['arrPrivilegioId']);
+        $arrPrivilegioId = is_array($rolePrivilegio['arrPrivilegioId'])
+            ? $rolePrivilegio['arrPrivilegioId']
+            : json_decode($rolePrivilegio['arrPrivilegioId']);
 
         RolePrivilegio::where('id_role', '=', $decryptedRoleId)->delete();
 

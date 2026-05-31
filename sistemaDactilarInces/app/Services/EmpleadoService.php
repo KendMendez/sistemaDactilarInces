@@ -85,6 +85,10 @@ class EmpleadoService
             $this->validateBase64String($empleado['huella_indice']);
         }
 
+        if (isset($empleado['id_cargo'])) {
+            $empleado['id_cargo'] = Crypt::decrypt($empleado['id_cargo']);
+        }
+
         $createdEmpleado = Empleado::create($empleado);
 
         if (isset($empleado['roleId'])) {
@@ -136,6 +140,10 @@ class EmpleadoService
             $this->validateBase64String($empleado['huella_indice']);
         }
 
+        if (isset($empleado['id_cargo'])) {
+            $empleado['id_cargo'] = Crypt::decrypt($empleado['id_cargo']);
+        }
+
         Empleado::where('id', '=', $decryptedId)->update($empleado);
 
         if (isset($empleado['roleId'])) {
@@ -145,13 +153,47 @@ class EmpleadoService
         return true;
     }
 
-    public function delete(string $id)
+    public function delete(string $id, bool $force = false)
     {
         $decryptedId = Crypt::decrypt($id);
 
-        RoleEmpleado::where('id_empleado', '=', $decryptedId)->delete();
+        $rolesCount = RoleEmpleado::where('id_empleado', $decryptedId)->count();
+        $asistenciasCount = \App\Models\Asistencia::where('id_empleado', $decryptedId)->count();
+        $inasistenciasCount = \App\Models\Inasistencia::where('id_empleado', $decryptedId)->count();
+        $horariosCount = \App\Models\Horario::where('id_empleado', $decryptedId)->count();
 
-        Empleado::where('id', '=', $decryptedId)->delete();
+        $parts = [];
+        if ($rolesCount > 0) {
+            $parts[] = $rolesCount . ' role(s) asignado(s)';
+        }
+        if ($asistenciasCount > 0) {
+            $parts[] = $asistenciasCount . ' asistencia(s) registrada(s)';
+        }
+        if ($inasistenciasCount > 0) {
+            $parts[] = $inasistenciasCount . ' inasistencia(s) registrada(s)';
+        }
+        if ($horariosCount > 0) {
+            $parts[] = $horariosCount . ' horario(s) asignado(s)';
+        }
+
+        if (count($parts) > 0 && ! $force) {
+            return [
+                'requires_confirmation' => true,
+                'msg' => 'Este empleado tiene ' . implode(', ', $parts) . '. ¿Está seguro de eliminarlo?',
+                'dependencies' => [
+                    'roles' => $rolesCount,
+                    'asistencias' => $asistenciasCount,
+                    'inasistencias' => $inasistenciasCount,
+                    'horarios' => $horariosCount,
+                ],
+            ];
+        }
+
+        RoleEmpleado::where('id_empleado', $decryptedId)->delete();
+        \App\Models\Asistencia::where('id_empleado', $decryptedId)->delete();
+        \App\Models\Inasistencia::where('id_empleado', $decryptedId)->delete();
+        \App\Models\Horario::where('id_empleado', $decryptedId)->delete();
+        Empleado::where('id', $decryptedId)->delete();
 
         return true;
     }
