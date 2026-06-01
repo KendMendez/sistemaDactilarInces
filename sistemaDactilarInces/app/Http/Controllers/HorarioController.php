@@ -45,10 +45,17 @@ class HorarioController extends Controller
     public function store(Request $req)
     {
         try {
+            $validated = $req->validate([
+                'id_empleado' => 'required|string',
+                'dia' => 'required|string|max:255',
+                'hora_entrada_esperada' => 'required|string',
+                'hora_salida_esperada' => 'required|string',
+            ]);
+
             $error = 0;
             $msg = Message::stored();
 
-            $horarioStored = $this->horarioService->store($req->input());
+            $horarioStored = $this->horarioService->store($validated);
             if (! $horarioStored) {
                 $error = 1;
                 $msg = Message::duplicated();
@@ -68,9 +75,16 @@ class HorarioController extends Controller
     public function update(Request $req, string $id)
     {
         try {
+            $validated = $req->validate([
+                'id_empleado' => 'required|string',
+                'dia' => 'required|string|max:255',
+                'hora_entrada_esperada' => 'required|string',
+                'hora_salida_esperada' => 'required|string',
+            ]);
+
             $error = 0;
             $msg = Message::updated();
-            $horarioUpdated = $this->horarioService->update($id, $req->input());
+            $horarioUpdated = $this->horarioService->update($id, $validated);
             if (! $horarioUpdated) {
                 $error = 1;
                 $msg = Message::duplicated();

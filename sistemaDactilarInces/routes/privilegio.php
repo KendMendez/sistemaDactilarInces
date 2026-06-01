@@ -9,4 +9,4 @@ Route::get('/index', [PrivilegioController::class, 'index'])->middleware('privil
 // Route::post('/store', [PrivilegioController::class, 'store']);
 // Route::put('/update/{id}', [PrivilegioController::class, 'update']);
 
-Route::delete('/{id}/delete', [PrivilegioController::class, 'delete'])->middleware('privilegio:ver privilegios');
+Route::delete('/{id}/delete', [PrivilegioController::class, 'delete'])->middleware('privilegio:eliminar privilegio');

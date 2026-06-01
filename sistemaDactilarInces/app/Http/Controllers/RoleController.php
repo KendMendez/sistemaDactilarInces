@@ -45,10 +45,14 @@ class RoleController extends Controller
     public function store(Request $req)
     {
         try {
+            $validated = $req->validate([
+                'role' => 'required|string|max:255',
+            ]);
+
             $error = 0;
             $msg = Message::stored();
 
-            $rolStored = $this->rolService->store($req->input());
+            $rolStored = $this->rolService->store($validated);
             if (! $rolStored) {
                 $error = 1;
                 $msg = Message::duplicated();
@@ -68,9 +72,13 @@ class RoleController extends Controller
     public function update(Request $req, string $id)
     {
         try {
+            $validated = $req->validate([
+                'role' => 'required|string|max:255',
+            ]);
+
             $error = 0;
             $msg = Message::updated();
-            $rolUpdated = $this->rolService->update($id, $req->input());
+            $rolUpdated = $this->rolService->update($id, $validated);
             if (! $rolUpdated) {
                 $error = 1;
                 $msg = Message::duplicated();

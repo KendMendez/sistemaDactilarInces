@@ -41,6 +41,10 @@ class HorarioService
 
     public function store(array $horario)
     {
+        if (isset($horario['id_empleado'])) {
+            $horario['id_empleado'] = Crypt::decrypt($horario['id_empleado']);
+        }
+
         $exists = Horario::where([
             ['id_empleado', '=', $horario['id_empleado']],
             ['dia', '=', $horario['dia']],
@@ -56,6 +60,10 @@ class HorarioService
     public function update(string $id, array $horario)
     {
         $decryptedId = Crypt::decrypt($id);
+
+        if (isset($horario['id_empleado'])) {
+            $horario['id_empleado'] = Crypt::decrypt($horario['id_empleado']);
+        }
 
         $findHorario = Horario::select('id')->where([
             ['id_empleado', '=', $horario['id_empleado']],

@@ -32,10 +32,6 @@ class JwtAuthMiddleware
             return response()->json([
                 'error' => 1,
                 'msg' => 'Acceso denegado. Debe iniciar sesión.',
-                'debug' => [
-                    'has_cookie_header' => (bool) $request->header('Cookie'),
-                    'cookie_header' => $request->header('Cookie'),
-                ],
             ], 401);
         }
 
@@ -72,7 +68,7 @@ class JwtAuthMiddleware
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 1,
-                'msg' => 'Error al autenticar: '.$e->getMessage(),
+                'msg' => 'Error al autenticar.',
             ], 401);
         }
     }

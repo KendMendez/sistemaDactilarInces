@@ -6,6 +6,7 @@ use App\Helpers\Message;
 use App\Services\EmpleadoAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class Authentication extends Controller
 {
@@ -17,11 +18,10 @@ class Authentication extends Controller
             $correo = $req->input('correo');
             $contrasena = $req->input('contraseña');
 
-            \Log::debug('[Login] Request received', [
+            Log::debug('[Login] Request received', [
                 'correo' => $correo,
                 'contrasena_present' => !is_null($contrasena),
                 'contrasena_length' => is_string($contrasena) ? strlen($contrasena) : null,
-                'all_input' => $req->all(),
                 'content_type' => $req->header('Content-Type'),
                 'method' => $req->method(),
             ]);
@@ -31,7 +31,7 @@ class Authentication extends Controller
                 'contraseña' => $contrasena,
             ]);
 
-            \Log::debug('[Login] Service result', [
+            Log::debug('[Login] Service result', [
                 'authenticated' => $authenticated ? 'truthy' : 'falsy',
                 'result_keys' => $authenticated ? array_keys($authenticated) : [],
             ]);
@@ -70,11 +70,18 @@ class Authentication extends Controller
 
     public function logout(): JsonResponse
     {
-        $cookie = $this->authService->deleteSessionCookie();
+        try {
+            $cookie = $this->authService->deleteSessionCookie();
 
-        return response()->json([
-            'error' => 0,
-            'msg' => 'Sesión cerrada correctamente',
-        ], 200)->withCookie($cookie);
+            return response()->json([
+                'error' => 0,
+                'msg' => 'Sesión cerrada correctamente',
+            ], 200)->withCookie($cookie);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 1,
+                'msg' => Message::exception(),
+            ], 500);
+        }
     }
 }

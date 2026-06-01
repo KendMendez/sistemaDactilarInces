@@ -27,6 +27,11 @@ class RolService
         $decryptedId = Crypt::decrypt($id);
 
         $findRol = Role::select('id', 'role')->where('id', '=', $decryptedId)->first();
+
+        if (! $findRol) {
+            throw new \Exception('Rol no encontrado');
+        }
+
         $cryptedId = Crypt::encrypt($findRol->id);
         $findRol->rolId = $cryptedId;
         unset($findRol->id);

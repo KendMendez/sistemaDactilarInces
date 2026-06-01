@@ -45,10 +45,16 @@ class InasistenciaController extends Controller
     public function store(Request $req)
     {
         try {
+            $validated = $req->validate([
+                'id_empleado' => 'required|string',
+                'fecha' => 'required|date',
+                'justificacion' => 'required|string',
+            ]);
+
             $error = 0;
             $msg = Message::stored();
 
-            $inasistenciaStored = $this->inasistenciaService->store($req->input());
+            $inasistenciaStored = $this->inasistenciaService->store($validated);
             if (! $inasistenciaStored) {
                 $error = 1;
                 $msg = Message::duplicated();
@@ -68,9 +74,15 @@ class InasistenciaController extends Controller
     public function update(Request $req, string $id)
     {
         try {
+            $validated = $req->validate([
+                'id_empleado' => 'sometimes|string',
+                'fecha' => 'sometimes|date',
+                'justificacion' => 'sometimes|string',
+            ]);
+
             $error = 0;
             $msg = Message::updated();
-            $inasistenciaUpdated = $this->inasistenciaService->update($id, $req->input());
+            $inasistenciaUpdated = $this->inasistenciaService->update($id, $validated);
             if (! $inasistenciaUpdated) {
                 $error = 1;
                 $msg = Message::duplicated();

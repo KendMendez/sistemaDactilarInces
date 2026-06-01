@@ -45,10 +45,14 @@ class CargoController extends Controller
     public function store(Request $req)
     {
         try {
+            $validated = $req->validate([
+                'cargo' => 'required|string|max:255',
+            ]);
+
             $error = 0;
             $msg = Message::stored();
 
-            $cargoStored = $this->cargoService->store($req->input());
+            $cargoStored = $this->cargoService->store($validated);
             if (! $cargoStored) {
                 $error = 1;
                 $msg = Message::duplicated();
@@ -68,9 +72,13 @@ class CargoController extends Controller
     public function update(Request $req, string $id)
     {
         try {
+            $validated = $req->validate([
+                'cargo' => 'required|string|max:255',
+            ]);
+
             $error = 0;
             $msg = Message::updated();
-            $cargoUpdated = $this->cargoService->update($id, $req->input());
+            $cargoUpdated = $this->cargoService->update($id, $validated);
             if (! $cargoUpdated) {
                 $error = 1;
                 $msg = Message::duplicated();

@@ -26,6 +26,11 @@ class FeriadoService
         $decryptedId = Crypt::decrypt($id);
 
         $findFeriado = Feriado::select('id', 'fecha', 'descripcion')->where('id', '=', $decryptedId)->first();
+
+        if (! $findFeriado) {
+            throw new \Exception('Feriado no encontrado');
+        }
+
         $cryptedId = Crypt::encrypt($findFeriado->id);
         $findFeriado->feriadoId = $cryptedId;
         unset($findFeriado->id);

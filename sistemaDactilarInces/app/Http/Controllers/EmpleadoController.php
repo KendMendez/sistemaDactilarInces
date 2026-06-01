@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Helpers\Message;
 use App\Services\EmpleadoService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class EmpleadoController extends Controller
 {
@@ -44,14 +46,35 @@ class EmpleadoController extends Controller
 
     public function store(Request $req)
     {
+        Log::debug('[Empleado] store request received', [
+            'keys' => array_keys($req->all()),
+            'has_contraseña' => $req->has('contraseña'),
+            'has_id_cargo' => $req->has('id_cargo'),
+            'content_type' => $req->header('Content-Type'),
+        ]);
         try {
+            $validated = $req->validate([
+                'id_cargo' => 'required|string',
+                'nombre' => 'required|string|max:255',
+                'apellido' => 'required|string|max:255',
+                'telefono' => 'required|string|max:255',
+                'identificacion' => 'required|string|max:255',
+                'correo' => 'required|email|max:255',
+                'contraseña' => 'required|string|min:6',
+                'sexo' => 'required|string|max:255',
+                'foto' => 'nullable|string',
+                'huella_pulgar' => 'nullable|string',
+                'huella_indice' => 'nullable|string',
+            ]);
+
             $error = 0;
             $msg = Message::stored();
 
-            $empleadoStored = $this->empleadoService->store($req->input());
+            $empleadoStored = $this->empleadoService->store($validated);
             if (! $empleadoStored) {
                 $error = 1;
                 $msg = Message::duplicated();
+                Log::warning('[Empleado] store duplicated', ['validated_keys' => array_keys($validated)]);
             }
             $res = [
                 'msg' => $msg,
@@ -60,17 +83,39 @@ class EmpleadoController extends Controller
             ];
 
             return response()->json($res, 201);
+        } catch (ValidationException $e) {
+            Log::warning('[Empleado] store validation failed', ['errors' => $e->errors()]);
+            return response()->json(['error' => 1, 'msg' => 'Datos inválidos', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['error' => 1, 'msg' => $e->getMessage()], 500);
+            Log::error('[Empleado] store exception', [
+                'msg' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }
     }
 
     public function update(Request $req, string $id)
     {
         try {
+            $validated = $req->validate([
+                'id_cargo' => 'sometimes|string',
+                'nombre' => 'sometimes|string|max:255',
+                'apellido' => 'sometimes|string|max:255',
+                'telefono' => 'sometimes|string|max:255',
+                'identificacion' => 'sometimes|string|max:255',
+                'correo' => 'sometimes|email|max:255',
+                'contraseña' => 'sometimes|string|min:6',
+                'sexo' => 'sometimes|string|max:255',
+                'foto' => 'nullable|string',
+                'huella_pulgar' => 'nullable|string',
+                'huella_indice' => 'nullable|string',
+            ]);
+
             $error = 0;
             $msg = Message::updated();
-            $empleadoUpdated = $this->empleadoService->update($id, $req->input());
+            $empleadoUpdated = $this->empleadoService->update($id, $validated);
             if (! $empleadoUpdated) {
                 $error = 1;
                 $msg = Message::duplicated();
@@ -83,7 +128,7 @@ class EmpleadoController extends Controller
 
             return response()->json($res, 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 1, 'msg' => $e->getMessage()], 500);
+            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }
     }
 

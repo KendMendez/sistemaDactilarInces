@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\Cookie;
 
@@ -27,7 +28,7 @@ class EmpleadoAuthService
             ['correo', '=', $auth['correo']],
         ])->first();
 
-        \Log::debug('[AuthService] Employee lookup', [
+        Log::debug('[AuthService] Employee lookup', [
             'correo' => $auth['correo'],
             'found' => $foundEmployee ? 'yes' : 'no',
             'auth_contraseña' => $auth['contraseña'] ?? 'MISSING',
@@ -51,7 +52,7 @@ class EmpleadoAuthService
             ];
         }
 
-        \Log::debug('[AuthService] Login result', [
+        Log::debug('[AuthService] Login result', [
             'employee_found' => $foundEmployee ? 'yes' : 'no',
             'response_empty' => empty($response) ? 'yes' : 'no',
             'hash_check_called' => $foundEmployee ? 'yes' : 'N/A',

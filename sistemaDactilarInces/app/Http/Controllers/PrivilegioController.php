@@ -45,10 +45,14 @@ class PrivilegioController extends Controller
     public function store(Request $req)
     {
         try {
+            $validated = $req->validate([
+                'privilegio' => 'required|string|max:255',
+            ]);
+
             $error = 0;
             $msg = Message::stored();
 
-            $privilegioStored = $this->privilegioService->store($req->input());
+            $privilegioStored = $this->privilegioService->store($validated);
             if (! $privilegioStored) {
                 $error = 1;
                 $msg = Message::duplicated();
@@ -68,9 +72,13 @@ class PrivilegioController extends Controller
     public function update(Request $req, string $id)
     {
         try {
+            $validated = $req->validate([
+                'privilegio' => 'required|string|max:255',
+            ]);
+
             $error = 0;
             $msg = Message::updated();
-            $privilegioUpdated = $this->privilegioService->update($id, $req->input());
+            $privilegioUpdated = $this->privilegioService->update($id, $validated);
             if (! $privilegioUpdated) {
                 $error = 1;
                 $msg = Message::duplicated();

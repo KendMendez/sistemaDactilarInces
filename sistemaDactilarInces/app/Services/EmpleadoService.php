@@ -14,6 +14,11 @@ class EmpleadoService
         $empleados = Empleado::orderBy('nombre')->get()->map(function ($empleadoTemp) {
             $cryptedId = Crypt::encrypt($empleadoTemp->id);
             $empleadoTemp->empleadoId = $cryptedId;
+
+            if ($empleadoTemp->id_cargo) {
+                $empleadoTemp->id_cargo = Crypt::encrypt($empleadoTemp->id_cargo);
+            }
+
             unset(
                 $empleadoTemp->id,
                 $empleadoTemp->contraseña,

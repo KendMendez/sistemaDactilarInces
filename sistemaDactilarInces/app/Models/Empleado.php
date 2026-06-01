@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -31,6 +32,12 @@ class Empleado extends Authenticatable
         'huella_indice',
     ];
 
+    protected $casts = [
+        'foto' => 'string',
+        'huella_pulgar' => 'string',
+        'huella_indice' => 'string',
+    ];
+
     public function getAuthPassword()
     {
         return $this->contraseña;
@@ -39,6 +46,11 @@ class Empleado extends Authenticatable
     public function getAuthIdentifierName()
     {
         return 'correo';
+    }
+
+    public function cargo(): BelongsTo
+    {
+        return $this->belongsTo(Cargo::class, 'id_cargo');
     }
 
     public function roles(): BelongsToMany

@@ -41,6 +41,10 @@ class InasistenciaService
 
     public function store(array $inasistencia)
     {
+        if (isset($inasistencia['id_empleado'])) {
+            $inasistencia['id_empleado'] = Crypt::decrypt($inasistencia['id_empleado']);
+        }
+
         $exists = Inasistencia::where([
             ['id_empleado', '=', $inasistencia['id_empleado']],
             ['fecha', '=', $inasistencia['fecha']],
@@ -56,6 +60,10 @@ class InasistenciaService
     public function update(string $id, array $inasistencia)
     {
         $decryptedId = Crypt::decrypt($id);
+
+        if (isset($inasistencia['id_empleado'])) {
+            $inasistencia['id_empleado'] = Crypt::decrypt($inasistencia['id_empleado']);
+        }
 
         $findInasistencia = Inasistencia::select('id')->where([
             ['id_empleado', '=', $inasistencia['id_empleado']],
