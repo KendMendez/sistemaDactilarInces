@@ -24,6 +24,7 @@ class EmpleadoController extends Controller
 
             return response()->json($res, 200);
         } catch (\Exception $e) {
+            Log::error('[Empleado] index exception', ['msg' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
             return response()->json(['msg' => Message::exception(), 'error' => 1], 500);
         }
     }
@@ -113,6 +114,11 @@ class EmpleadoController extends Controller
 
             return response()->json($res, 200);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('[EmpleadoUpdate] ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }
     }
@@ -132,6 +138,7 @@ class EmpleadoController extends Controller
                 'results' => [$empleadoFound],
             ], 200);
         } catch (\Exception $e) {
+            Log::error('[Empleado] search exception', ['msg' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
             return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }
     }
@@ -152,6 +159,7 @@ class EmpleadoController extends Controller
 
             return response()->json(['error' => 0, 'msg' => Message::deleted()], 200);
         } catch (\Exception $e) {
+            Log::error('[Empleado] delete exception', ['msg' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
             return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }
     }

@@ -9,13 +9,18 @@ class AsistenciaService
 {
     public function index()
     {
-        $asistencias = Asistencia::orderBy('fecha', 'desc')->get()->map(function ($asistenciaTemp) {
-            $cryptedId = Crypt::encrypt($asistenciaTemp->id);
-            $asistenciaTemp->asistenciaId = $cryptedId;
-            unset($asistenciaTemp->id);
+        $asistencias = Asistencia::with('empleado:id,nombre,apellido')
+            ->orderBy('fecha', 'desc')
+            ->get()
+            ->map(function ($asistenciaTemp) {
+                $cryptedId = Crypt::encrypt($asistenciaTemp->id);
+                $asistenciaTemp->asistenciaId = $cryptedId;
+                unset($asistenciaTemp->id);
+                $asistenciaTemp->empleado_nombre = $asistenciaTemp->empleado?->nombre . ' ' . $asistenciaTemp->empleado?->apellido;
+                unset($asistenciaTemp->empleado);
 
-            return $asistenciaTemp;
-        });
+                return $asistenciaTemp;
+            });
 
         return $asistencias;
     }
@@ -70,13 +75,16 @@ class AsistenciaService
 
     public function pending()
     {
-        $asistencias = Asistencia::where('status', 'pending_approval')
+        $asistencias = Asistencia::with('empleado:id,nombre,apellido')
+            ->where('status', 'pending_approval')
             ->orderBy('fecha', 'desc')
             ->get()
             ->map(function ($asistenciaTemp) {
                 $cryptedId = Crypt::encrypt($asistenciaTemp->id);
                 $asistenciaTemp->asistenciaId = $cryptedId;
                 unset($asistenciaTemp->id);
+                $asistenciaTemp->empleado_nombre = $asistenciaTemp->empleado?->nombre . ' ' . $asistenciaTemp->empleado?->apellido;
+                unset($asistenciaTemp->empleado);
 
                 return $asistenciaTemp;
             });

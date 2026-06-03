@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Asistencia;
+use App\Models\Empleado;
 use App\Models\Horario;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -89,19 +90,117 @@ class KioskoService
         ];
     }
 
-    public function getTemplates(): array
+    public function matchFingerprint(string $huella): ?array
     {
-        return \App\Models\Empleado::whereNotNull('huella_pulgar')
+        $scannedImg = @imagecreatefromstring(base64_decode($huella));
+        if (! $scannedImg) {
+            return null;
+        }
+
+        $w = 32;
+        $h = 32;
+        $scannedNorm = $this->normalizeFingerprint($scannedImg, $w, $h);
+        imagedestroy($scannedImg);
+
+        $employees = Empleado::whereNotNull('huella_pulgar')
             ->orWhereNotNull('huella_indice')
-            ->get()
-            ->map(function ($empleado) {
-                return [
-                    'id_empleado' => Crypt::encrypt($empleado->id),
-                    'nombre' => $empleado->nombre . ' ' . $empleado->apellido,
-                    'huella_pulgar' => $empleado->huella_pulgar,
-                    'huella_indice' => $empleado->huella_indice,
-                ];
-            })
-            ->toArray();
+            ->get();
+
+        $bestScore = 1.0;
+        $bestEmployee = null;
+
+        foreach ($employees as $emp) {
+            foreach (['huella_pulgar', 'huella_indice'] as $field) {
+                if (empty($emp->$field)) {
+                    continue;
+                }
+
+                $storedImg = @imagecreatefromstring(base64_decode($emp->$field));
+                if (! $storedImg) {
+                    continue;
+                }
+
+                $storedNorm = $this->normalizeFingerprint($storedImg, $w, $h);
+                imagedestroy($storedImg);
+
+                $score = $this->compareNormalized($scannedNorm, $storedNorm);
+
+                if ($score < $bestScore) {
+                    $bestScore = $score;
+                    $bestEmployee = $emp;
+                }
+            }
+        }
+
+        $threshold = 0.25;
+        if ($bestEmployee && $bestScore < $threshold) {
+            return [
+                'id_empleado' => Crypt::encrypt($bestEmployee->id),
+                'nombre' => $bestEmployee->nombre . ' ' . $bestEmployee->apellido,
+                'score' => round($bestScore, 4),
+            ];
+        }
+
+        return null;
+    }
+
+    private function normalizeFingerprint($img, int $w, int $h): array
+    {
+        $thumb = imagecreatetruecolor($w, $h);
+        imagecopyresampled($thumb, $img, 0, 0, 0, 0, $w, $h, imagesx($img), imagesy($img));
+
+        $gray = [];
+        for ($x = 0; $x < $w; $x++) {
+            for ($y = 0; $y < $h; $y++) {
+                $rgb = imagecolorsforindex($thumb, imagecolorat($thumb, $x, $y));
+                $gray[$x][$y] = ($rgb['red'] + $rgb['green'] + $rgb['blue']) / 3;
+            }
+        }
+        imagedestroy($thumb);
+
+        $min = 255;
+        $max = 0;
+        foreach ($gray as $row) {
+            foreach ($row as $v) {
+                if ($v < $min) {
+                    $min = $v;
+                }
+                if ($v > $max) {
+                    $max = $v;
+                }
+            }
+        }
+
+        $range = $max - $min;
+        if ($range > 0) {
+            for ($x = 0; $x < $w; $x++) {
+                for ($y = 0; $y < $h; $y++) {
+                    $gray[$x][$y] = ($gray[$x][$y] - $min) / $range;
+                }
+            }
+        } else {
+            for ($x = 0; $x < $w; $x++) {
+                for ($y = 0; $y < $h; $y++) {
+                    $gray[$x][$y] = 0.0;
+                }
+            }
+        }
+
+        return $gray;
+    }
+
+    private function compareNormalized(array $a, array $b): float
+    {
+        $totalDiff = 0.0;
+        $count = 0;
+        $w = count($a);
+        for ($x = 0; $x < $w; $x++) {
+            $h = count($a[$x]);
+            for ($y = 0; $y < $h; $y++) {
+                $totalDiff += abs($a[$x][$y] - $b[$x][$y]);
+                $count++;
+            }
+        }
+        return $count > 0 ? $totalDiff / $count : 1.0;
     }
 }

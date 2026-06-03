@@ -91,20 +91,22 @@ class EmpleadoService
         }
 
         if (isset($empleado['huella_pulgar']) && ! empty($empleado['huella_pulgar'])) {
-            $this->validateBase64String($empleado['huella_pulgar']);
+            $this->validateHuellaBase64($empleado['huella_pulgar']);
         }
         if (isset($empleado['huella_indice']) && ! empty($empleado['huella_indice'])) {
-            $this->validateBase64String($empleado['huella_indice']);
+            $this->validateHuellaBase64($empleado['huella_indice']);
         }
 
         if (isset($empleado['id_cargo'])) {
             $empleado['id_cargo'] = Crypt::decrypt($empleado['id_cargo']);
         }
 
+        $roleId = $empleado['roleId'] ?? null;
+        unset($empleado['roleId']);
         $createdEmpleado = Empleado::create($empleado);
 
-        if (! empty($empleado['roleId']) && $empleado['roleId'] !== '[]') {
-            $this->assignRoles($createdEmpleado->id, $empleado['roleId']);
+        if (! empty($roleId) && $roleId !== '[]') {
+            $this->assignRoles($createdEmpleado->id, $roleId);
         }
 
         return [
@@ -146,20 +148,22 @@ class EmpleadoService
         }
 
         if (isset($empleado['huella_pulgar']) && ! empty($empleado['huella_pulgar'])) {
-            $this->validateBase64String($empleado['huella_pulgar']);
+            $this->validateHuellaBase64($empleado['huella_pulgar']);
         }
         if (isset($empleado['huella_indice']) && ! empty($empleado['huella_indice'])) {
-            $this->validateBase64String($empleado['huella_indice']);
+            $this->validateHuellaBase64($empleado['huella_indice']);
         }
 
         if (isset($empleado['id_cargo'])) {
             $empleado['id_cargo'] = Crypt::decrypt($empleado['id_cargo']);
         }
 
+        $roleId = $empleado['roleId'] ?? null;
+        unset($empleado['roleId']);
         Empleado::where('id', '=', $decryptedId)->update($empleado);
 
-        if (! empty($empleado['roleId']) && $empleado['roleId'] !== '[]') {
-            $this->assignRoles($decryptedId, $empleado['roleId']);
+        if (! empty($roleId) && $roleId !== '[]') {
+            $this->assignRoles($decryptedId, $roleId);
         }
 
         return true;
@@ -258,6 +262,13 @@ class EmpleadoService
 
         if (! $isValidImage) {
             throw new \Exception('El archivo no es una imagen válida (JPEG, PNG, GIF)');
+        }
+    }
+
+    private function validateHuellaBase64(string $value): void
+    {
+        if (empty($value)) {
+            throw new \Exception('La huella no puede estar vacía');
         }
     }
 
