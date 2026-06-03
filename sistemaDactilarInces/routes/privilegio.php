@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/index', [PrivilegioController::class, 'index'])->middleware('privilegio:ver privilegios');
 
-// Route::get('/showById/{id}', [PrivilegioController::class, 'showById'])->middleware('privilegio:ver privilegios');
 // Route::post('/store', [PrivilegioController::class, 'store']);
 // Route::put('/update/{id}', [PrivilegioController::class, 'update']);
 

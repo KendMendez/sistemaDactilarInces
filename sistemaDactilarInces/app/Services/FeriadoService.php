@@ -20,24 +20,6 @@ class FeriadoService
 
         return $feriados;
     }
-
-    public function showById(string $id)
-    {
-        $decryptedId = Crypt::decrypt($id);
-
-        $findFeriado = Feriado::select('id', 'fecha', 'descripcion')->where('id', '=', $decryptedId)->first();
-
-        if (! $findFeriado) {
-            throw new \Exception('Feriado no encontrado');
-        }
-
-        $cryptedId = Crypt::encrypt($findFeriado->id);
-        $findFeriado->feriadoId = $cryptedId;
-        unset($findFeriado->id);
-
-        return $findFeriado;
-    }
-
     public function store(array $feriado)
     {
         $fechaInput = $feriado['fecha'];

@@ -25,23 +25,6 @@ class CargoController extends Controller
             return response()->json(['msg' => Message::exception(), 'error' => 1], 500);
         }
     }
-
-    public function showById(string $id)
-    {
-        try {
-            $cargoFound = $this->cargoService->showById($id);
-            $res = [
-                'msg' => '',
-                'error' => 0,
-                'results' => $cargoFound,
-            ];
-
-            return response()->json($res, 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
-        }
-    }
-
     public function store(Request $req)
     {
         try {

@@ -11,54 +11,61 @@ class EmpleadoService
 {
     public function index()
     {
-        $empleados = Empleado::orderBy('nombre')->get()->map(function ($empleadoTemp) {
-            $cryptedId = Crypt::encrypt($empleadoTemp->id);
-            $empleadoTemp->empleadoId = $cryptedId;
+        $empleados = Empleado::with('cargo:id,cargo')
+            ->with('roles:id,role')
+            ->orderBy('nombre')
+            ->get()
+            ->map(function ($empleadoTemp) {
+                $cryptedId = Crypt::encrypt($empleadoTemp->id);
+                $empleadoTemp->empleadoId = $cryptedId;
 
-            if ($empleadoTemp->id_cargo) {
-                $empleadoTemp->id_cargo = Crypt::encrypt($empleadoTemp->id_cargo);
-            }
+                if ($empleadoTemp->id_cargo) {
+                    $empleadoTemp->id_cargo = Crypt::encrypt($empleadoTemp->id_cargo);
+                }
 
-            unset(
-                $empleadoTemp->id,
-                $empleadoTemp->contraseña,
-                $empleadoTemp->huella_pulgar,
-                $empleadoTemp->huella_indice
-            );
+                $empleadoTemp->rolIds = $empleadoTemp->roles->map(fn($r) => Crypt::encrypt($r->id))->values();
+                unset($empleadoTemp->roles);
 
-            return $empleadoTemp;
-        });
+                unset(
+                    $empleadoTemp->id,
+                    $empleadoTemp->contraseña,
+                    $empleadoTemp->huella_pulgar,
+                    $empleadoTemp->huella_indice
+                );
+
+                return $empleadoTemp;
+            });
 
         return $empleados;
     }
 
-    public function showById(string $id)
+    public function findByIdentificacion(string $identificacion)
     {
-        $decryptedId = Crypt::decrypt($id);
-
-        $findEmpleado = Empleado::select(
-            'id',
-            'id_cargo',
-            'nombre',
-            'apellido',
-            'telefono',
-            'identificacion',
-            'correo',
-            'foto',
-            'sexo'
-        )->where('id', '=', $decryptedId)->first();
+        $findEmpleado = Empleado::with('cargo:id,cargo')
+            ->with('roles:id,role')
+            ->where('identificacion', $identificacion)
+            ->first();
 
         if (! $findEmpleado) {
-            throw new \Exception('Empleado no encontrado');
+            return null;
         }
 
         $cryptedId = Crypt::encrypt($findEmpleado->id);
         $findEmpleado->empleadoId = $cryptedId;
+
+        if ($findEmpleado->id_cargo) {
+            $findEmpleado->id_cargo = Crypt::encrypt($findEmpleado->id_cargo);
+        }
+
+        $findEmpleado->rolIds = $findEmpleado->roles->map(fn($r) => Crypt::encrypt($r->id))->values();
+        unset($findEmpleado->roles);
         unset($findEmpleado->id);
+        unset($findEmpleado->contraseña);
+        unset($findEmpleado->huella_pulgar);
+        unset($findEmpleado->huella_indice);
 
         return $findEmpleado;
     }
-
     public function store(array $empleado)
     {
         if (isset($empleado['correo']) && ! empty($empleado['correo'])) {
@@ -71,7 +78,7 @@ class EmpleadoService
         if (isset($empleado['identificacion'])) {
             $exists = Empleado::where('identificacion', $empleado['identificacion'])->exists();
             if ($exists) {
-                throw new \Exception('Identificacion duplicada');
+                return false;
             }
         }
 
@@ -96,7 +103,7 @@ class EmpleadoService
 
         $createdEmpleado = Empleado::create($empleado);
 
-        if (isset($empleado['roleId'])) {
+        if (! empty($empleado['roleId']) && $empleado['roleId'] !== '[]') {
             $this->assignRoles($createdEmpleado->id, $empleado['roleId']);
         }
 
@@ -151,7 +158,7 @@ class EmpleadoService
 
         Empleado::where('id', '=', $decryptedId)->update($empleado);
 
-        if (isset($empleado['roleId'])) {
+        if (! empty($empleado['roleId']) && $empleado['roleId'] !== '[]') {
             $this->assignRoles($decryptedId, $empleado['roleId']);
         }
 
@@ -224,7 +231,7 @@ class EmpleadoService
         RoleEmpleado::insert($arrInsert);
     }
 
-    private function validateBase64Image(string $base64, int $maxKB = 1000): void
+    private function validateBase64Image(string $base64, int $maxKB = 2048): void
     {
         $decoded = base64_decode($base64, true);
         if ($decoded === false) {

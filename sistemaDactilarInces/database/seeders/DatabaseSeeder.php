@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             PrivilegeSeeder::class,
             EmpleadoSeeder::class,
+            FeriadoSeeder::class,
         ]);
     }
 }

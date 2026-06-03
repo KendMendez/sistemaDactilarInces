@@ -25,23 +25,6 @@ class RoleController extends Controller
             return response()->json(['msg' => Message::exception(), 'error' => 1], 500);
         }
     }
-
-    public function showById(string $id)
-    {
-        try {
-            $rolFound = $this->rolService->showById($id);
-            $res = [
-                'msg' => '',
-                'error' => 0,
-                'results' => $rolFound,
-            ];
-
-            return response()->json($res, 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
-        }
-    }
-
     public function store(Request $req)
     {
         try {

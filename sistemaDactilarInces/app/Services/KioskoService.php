@@ -30,7 +30,7 @@ class KioskoService
             ->first();
 
         $horario = Horario::where('id_empleado', $decryptedId)
-            ->where('dia', $ahora->locale('es')->dayName)
+            ->whereJsonContains('dia', $ahora->locale('es')->dayName)
             ->first();
 
         if ($asistenciaHoy && $asistenciaHoy->hora_salida) {
@@ -43,7 +43,7 @@ class KioskoService
 
         if (! $asistenciaHoy) {
             $status = 'presente';
-            $horaEntradaEsperada = $horario ? Carbon::parse($horario->hora_entrada_esperada) : null;
+            $horaEntradaEsperada = $horario ? Carbon::parse($horario->hora_entrada_tolerada) : null;
 
             if ($horaEntradaEsperada && $ahora->diffInMinutes($horaEntradaEsperada, false) > 15) {
                 $status = 'pending_approval';
@@ -68,7 +68,7 @@ class KioskoService
         }
 
         $status = 'presente';
-        $horaSalidaEsperada = $horario ? Carbon::parse($horario->hora_salida_esperada) : null;
+        $horaSalidaEsperada = $horario ? Carbon::parse($horario->hora_salida_tolerada) : null;
 
         if ($horaSalidaEsperada && $horaSalidaEsperada->diffInMinutes($ahora, false) > 15) {
             $status = 'pending_approval';

@@ -27,23 +27,6 @@ class EmpleadoController extends Controller
             return response()->json(['msg' => Message::exception(), 'error' => 1], 500);
         }
     }
-
-    public function showById(string $id)
-    {
-        try {
-            $empleadoFound = $this->empleadoService->showById($id);
-            $res = [
-                'msg' => '',
-                'error' => 0,
-                'results' => $empleadoFound,
-            ];
-
-            return response()->json($res, 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
-        }
-    }
-
     public function store(Request $req)
     {
         Log::debug('[Empleado] store request received', [
@@ -58,13 +41,14 @@ class EmpleadoController extends Controller
                 'nombre' => 'required|string|max:255',
                 'apellido' => 'required|string|max:255',
                 'telefono' => 'required|string|max:255',
-                'identificacion' => 'required|string|max:255',
+                'identificacion' => 'required|string|regex:/^\d+$/|max:255',
                 'correo' => 'required|email|max:255',
-                'contraseña' => 'required|string|min:6',
+                'contraseña' => 'required|string|min:8',
                 'sexo' => 'required|string|max:255',
                 'foto' => 'nullable|string',
                 'huella_pulgar' => 'nullable|string',
                 'huella_indice' => 'nullable|string',
+                'roleId' => 'nullable|string',
             ]);
 
             $error = 0;
@@ -104,13 +88,14 @@ class EmpleadoController extends Controller
                 'nombre' => 'sometimes|string|max:255',
                 'apellido' => 'sometimes|string|max:255',
                 'telefono' => 'sometimes|string|max:255',
-                'identificacion' => 'sometimes|string|max:255',
+                'identificacion' => 'sometimes|string|regex:/^\d+$/|max:255',
                 'correo' => 'sometimes|email|max:255',
-                'contraseña' => 'sometimes|string|min:6',
+                'contraseña' => 'sometimes|string|min:8',
                 'sexo' => 'sometimes|string|max:255',
                 'foto' => 'nullable|string',
                 'huella_pulgar' => 'nullable|string',
                 'huella_indice' => 'nullable|string',
+                'roleId' => 'nullable|string',
             ]);
 
             $error = 0;
@@ -127,6 +112,25 @@ class EmpleadoController extends Controller
             ];
 
             return response()->json($res, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
+        }
+    }
+
+    public function search(string $identificacion)
+    {
+        try {
+            $empleadoFound = $this->empleadoService->findByIdentificacion($identificacion);
+
+            if (! $empleadoFound) {
+                return response()->json(['error' => 1, 'msg' => 'Empleado no encontrado'], 404);
+            }
+
+            return response()->json([
+                'msg' => '',
+                'error' => 0,
+                'results' => [$empleadoFound],
+            ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
         }

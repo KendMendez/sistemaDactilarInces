@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'jwt.auth' => \App\Http\Middleware\JwtAuthMiddleware::class,
+            'kiosko' => \App\Http\Middleware\KioskoMiddleware::class,
             'privilegio' => \App\Http\Middleware\PrivilegioMiddleware::class,
         ]);
     })

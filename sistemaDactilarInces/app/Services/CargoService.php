@@ -20,24 +20,6 @@ class CargoService
 
         return $cargos;
     }
-
-    public function showById(string $id)
-    {
-        $decryptedId = Crypt::decrypt($id);
-
-        $findCargo = Cargo::select('id', 'cargo')->where('id', '=', $decryptedId)->first();
-
-        if (! $findCargo) {
-            throw new \Exception('Cargo no encontrado');
-        }
-
-        $cryptedId = Crypt::encrypt($findCargo->id);
-        $findCargo->cargoId = $cryptedId;
-        unset($findCargo->id);
-
-        return $findCargo;
-    }
-
     public function store(array $cargo)
     {
         $exists = Cargo::where('cargo', $cargo['cargo'])->exists();

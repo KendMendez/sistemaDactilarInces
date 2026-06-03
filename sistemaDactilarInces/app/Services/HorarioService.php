@@ -9,9 +9,10 @@ class HorarioService
 {
     public function index()
     {
-        $horarios = Horario::orderBy('dia')->get()->map(function ($horarioTemp) {
+        $horarios = Horario::with('empleado:id,nombre,apellido')->orderBy('id', 'desc')->get()->map(function ($horarioTemp) {
             $cryptedId = Crypt::encrypt($horarioTemp->id);
             $horarioTemp->horarioId = $cryptedId;
+            $horarioTemp->id_empleado = Crypt::encrypt($horarioTemp->id_empleado);
             unset($horarioTemp->id);
 
             return $horarioTemp;
@@ -19,36 +20,19 @@ class HorarioService
 
         return $horarios;
     }
-
-    public function showById(string $id)
-    {
-        $decryptedId = Crypt::decrypt($id);
-
-        $findHorario = Horario::select('id', 'id_empleado', 'dia', 'hora_entrada_esperada', 'hora_salida_esperada')
-            ->where('id', '=', $decryptedId)
-            ->first();
-
-        if (! $findHorario) {
-            throw new \Exception('Horario no encontrado');
-        }
-
-        $cryptedId = Crypt::encrypt($findHorario->id);
-        $findHorario->horarioId = $cryptedId;
-        unset($findHorario->id);
-
-        return $findHorario;
-    }
-
     public function store(array $horario)
     {
         if (isset($horario['id_empleado'])) {
             $horario['id_empleado'] = Crypt::decrypt($horario['id_empleado']);
         }
 
-        $exists = Horario::where([
-            ['id_empleado', '=', $horario['id_empleado']],
-            ['dia', '=', $horario['dia']],
-        ])->exists();
+        $exists = Horario::where('id_empleado', $horario['id_empleado'])
+            ->where(function ($q) use ($horario) {
+                foreach ($horario['dia'] as $day) {
+                    $q->orWhereJsonContains('dia', $day);
+                }
+            })
+            ->exists();
 
         if ($exists) {
             return false;
@@ -65,11 +49,14 @@ class HorarioService
             $horario['id_empleado'] = Crypt::decrypt($horario['id_empleado']);
         }
 
-        $findHorario = Horario::select('id')->where([
-            ['id_empleado', '=', $horario['id_empleado']],
-            ['dia', '=', $horario['dia']],
-            ['id', '!=', $decryptedId],
-        ])->first();
+        $findHorario = Horario::where('id_empleado', $horario['id_empleado'])
+            ->where('id', '!=', $decryptedId)
+            ->where(function ($q) use ($horario) {
+                foreach ($horario['dia'] as $day) {
+                    $q->orWhereJsonContains('dia', $day);
+                }
+            })
+            ->first();
 
         if ($findHorario) {
             return false;

@@ -10,13 +10,18 @@ class Horario extends Model
     protected $fillable = [
         'id_empleado',
         'dia',
-        'hora_entrada_esperada',
-        'hora_salida_esperada',
+        'hora_entrada',
+        'hora_salida',
+        'hora_entrada_tolerada',
+        'hora_salida_tolerada',
     ];
 
     protected $casts = [
-        'hora_entrada_esperada' => 'string',
-        'hora_salida_esperada' => 'string',
+        'dia' => 'array',
+        'hora_entrada' => 'string',
+        'hora_salida' => 'string',
+        'hora_entrada_tolerada' => 'string',
+        'hora_salida_tolerada' => 'string',
     ];
 
     public function empleado(): BelongsTo

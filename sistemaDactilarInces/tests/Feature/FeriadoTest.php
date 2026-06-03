@@ -21,19 +21,6 @@ test('index returns all feriados', function () {
         ->assertJsonCount(2, 'results');
 });
 
-test('showById returns feriado by id', function () {
-    $feriado = Feriado::create(['fecha' => '2026-01-01', 'descripcion' => 'Año Nuevo']);
-    $encryptedId = Crypt::encrypt($feriado->id);
-
-    $response = $this->getJson("/api/feriado/showById{$encryptedId}");
-
-    $response->assertStatus(200)
-        ->assertJson(['error' => 0]);
-
-    $response->assertJsonPath('results.fecha', '2026-01-01');
-    $response->assertJsonPath('results.descripcion', 'Año Nuevo');
-});
-
 test('store creates a new feriado', function () {
     $response = $this->postJson('/api/feriado/store', [
         'fecha' => '2026-12-25',

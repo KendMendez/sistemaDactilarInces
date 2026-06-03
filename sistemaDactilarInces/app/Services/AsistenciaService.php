@@ -19,26 +19,6 @@ class AsistenciaService
 
         return $asistencias;
     }
-
-    public function showById(string $id)
-    {
-        $decryptedId = Crypt::decrypt($id);
-
-        $findAsistencia = Asistencia::select('id', 'id_empleado', 'fecha', 'hora_entrada', 'hora_salida', 'status', 'tipo_marcacion')
-            ->where('id', '=', $decryptedId)
-            ->first();
-
-        if (! $findAsistencia) {
-            throw new \Exception('Asistencia no encontrada');
-        }
-
-        $cryptedId = Crypt::encrypt($findAsistencia->id);
-        $findAsistencia->asistenciaId = $cryptedId;
-        unset($findAsistencia->id);
-
-        return $findAsistencia;
-    }
-
     public function store(array $asistencia)
     {
         if (isset($asistencia['id_empleado'])) {

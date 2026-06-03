@@ -21,18 +21,6 @@ test('index returns all cargos', function () {
         ->assertJsonCount(2, 'results');
 });
 
-test('showById returns cargo by id', function () {
-    $cargo = Cargo::create(['cargo' => 'SuperAdmin1']);
-    $encryptedId = Crypt::encrypt($cargo->id);
-
-    $response = $this->getJson("/api/cargo/{$encryptedId}");
-
-    $response->assertStatus(200)
-        ->assertJson(['error' => 0]);
-
-    $response->assertJsonPath('results.cargo', 'SuperAdmin1');
-});
-
 test('store creates a new cargo', function () {
     $response = $this->postJson('/api/cargo', [
         'cargo' => 'SuperAdmin1',

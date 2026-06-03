@@ -25,31 +25,17 @@ class HorarioController extends Controller
             return response()->json(['msg' => Message::exception(), 'error' => 1], 500);
         }
     }
-
-    public function showById(string $id)
-    {
-        try {
-            $horarioFound = $this->horarioService->showById($id);
-            $res = [
-                'msg' => '',
-                'error' => 0,
-                'results' => $horarioFound,
-            ];
-
-            return response()->json($res, 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
-        }
-    }
-
     public function store(Request $req)
     {
         try {
             $validated = $req->validate([
                 'id_empleado' => 'required|string',
-                'dia' => 'required|string|max:255',
-                'hora_entrada_esperada' => 'required|string',
-                'hora_salida_esperada' => 'required|string',
+                'dia' => 'required|array',
+                'dia.*' => 'required|string|distinct',
+                'hora_entrada' => 'nullable|string',
+                'hora_salida' => 'nullable|string',
+                'hora_entrada_tolerada' => 'required|string',
+                'hora_salida_tolerada' => 'required|string',
             ]);
 
             $error = 0;
@@ -77,9 +63,12 @@ class HorarioController extends Controller
         try {
             $validated = $req->validate([
                 'id_empleado' => 'required|string',
-                'dia' => 'required|string|max:255',
-                'hora_entrada_esperada' => 'required|string',
-                'hora_salida_esperada' => 'required|string',
+                'dia' => 'required|array',
+                'dia.*' => 'required|string|distinct',
+                'hora_entrada' => 'nullable|string',
+                'hora_salida' => 'nullable|string',
+                'hora_entrada_tolerada' => 'required|string',
+                'hora_salida_tolerada' => 'required|string',
             ]);
 
             $error = 0;

@@ -20,24 +20,6 @@ class PrivilegioService
 
         return $privilegios;
     }
-
-    public function showById(string $id)
-    {
-        $decryptedId = Crypt::decrypt($id);
-
-        $findPrivilegio = Privilegio::select('id', 'privilegio')->where('id', '=', $decryptedId)->first();
-
-        if (! $findPrivilegio) {
-            throw new \Exception('Privilegio no encontrado');
-        }
-
-        $cryptedId = Crypt::encrypt($findPrivilegio->id);
-        $findPrivilegio->privilegioId = $cryptedId;
-        unset($findPrivilegio->id);
-
-        return $findPrivilegio;
-    }
-
     public function store(array $privilegio)
     {
         $exists = Privilegio::where('privilegio', $privilegio['privilegio'])->exists();
