@@ -169,6 +169,35 @@ class EmpleadoService
         return true;
     }
 
+    public function getEditData(?string $id): array
+    {
+        $decryptedId = ($id && $id !== 'new') ? Crypt::decrypt($id) : null;
+
+        $empleado = $decryptedId ? Empleado::find($decryptedId) : null;
+
+        $cargos = \App\Models\Cargo::orderBy('cargo')->get()->map(function ($c) use ($empleado) {
+            return [
+                'cargoId' => Crypt::encrypt($c->id),
+                'cargo' => $c->cargo,
+                'selected' => $empleado && $empleado->id_cargo === $c->id,
+            ];
+        })->values();
+
+        $employeeRoleIds = $empleado
+            ? RoleEmpleado::where('id_empleado', $empleado->id)->pluck('id_role')->toArray()
+            : [];
+
+        $roles = \App\Models\Role::orderBy('role')->get()->map(function ($r) use ($employeeRoleIds) {
+            return [
+                'rolId' => Crypt::encrypt($r->id),
+                'role' => $r->role,
+                'selected' => in_array($r->id, $employeeRoleIds),
+            ];
+        })->values();
+
+        return compact('cargos', 'roles');
+    }
+
     public function delete(string $id, bool $force = false)
     {
         $decryptedId = Crypt::decrypt($id);

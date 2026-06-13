@@ -102,6 +102,12 @@ class KioskoService
         $scannedNorm = $this->normalizeFingerprint($scannedImg, $w, $h);
         imagedestroy($scannedImg);
 
+        $mean = array_sum(array_merge(...$scannedNorm)) / ($w * $h);
+        $variance = 0.0;
+        foreach ($scannedNorm as $row) foreach ($row as $v) $variance += ($v - $mean) ** 2;
+        $variance /= ($w * $h);
+        if ($variance < 0.01) return null;
+
         $employees = Empleado::whereNotNull('huella_pulgar')
             ->orWhereNotNull('huella_indice')
             ->get();
@@ -132,7 +138,7 @@ class KioskoService
             }
         }
 
-        $threshold = 0.25;
+        $threshold = 0.18;
         if ($bestEmployee && $bestScore < $threshold) {
             return [
                 'id_empleado' => Crypt::encrypt($bestEmployee->id),

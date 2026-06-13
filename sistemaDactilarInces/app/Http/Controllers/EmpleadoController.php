@@ -123,6 +123,17 @@ class EmpleadoController extends Controller
         }
     }
 
+    public function editData(?string $id = null)
+    {
+        try {
+            $data = $this->empleadoService->getEditData($id);
+            return response()->json(['error' => 0, ...$data], 200);
+        } catch (\Exception $e) {
+            Log::error('[Empleado] editData exception', ['msg' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
+            return response()->json(['error' => 1, 'msg' => Message::exception()], 500);
+        }
+    }
+
     public function search(string $identificacion)
     {
         try {
