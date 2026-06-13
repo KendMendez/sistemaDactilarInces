@@ -17,6 +17,9 @@ class EmpleadoSeeder extends Seeder
             ['cargo' => 'Administrador']
         );
 
+        $adminRole = Role::where('role', 'Administrador')->first();
+
+        // Usuario admin original
         $existeEmpleado = Empleado::where('correo', 'admin@test.com')->exists();
 
         if (! $existeEmpleado) {
@@ -34,7 +37,6 @@ class EmpleadoSeeder extends Seeder
                 'huella_indice' => '',
             ]);
 
-            $adminRole = Role::where('role', 'Administrador')->first();
             $empleado->roles()->attach($adminRole->id);
 
             $this->command->info('Usuario de prueba creado:');
@@ -42,7 +44,35 @@ class EmpleadoSeeder extends Seeder
             $this->command->info('  Contraseña: password123');
             $this->command->info('  Rol: Administrador');
         } else {
-            $this->command->info('El usuario de prueba ya existe.');
+            $this->command->info('El usuario admin@test.com ya existe.');
+        }
+
+        // Super admin de respaldo (siempre se crea si no existe)
+        $existeSuper = Empleado::where('correo', 'superadmin@test.com')->exists();
+
+        if (! $existeSuper) {
+            $super = Empleado::create([
+                'id_cargo' => $cargo->id,
+                'nombre' => 'Super',
+                'apellido' => 'Admin',
+                'telefono' => '04121111111',
+                'identificacion' => '99999999',
+                'correo' => 'superadmin@test.com',
+                'contraseña' => Hash::make('SuperAdmin2025'),
+                'foto' => '',
+                'sexo' => 'M',
+                'huella_pulgar' => '',
+                'huella_indice' => '',
+            ]);
+
+            $super->roles()->attach($adminRole->id);
+
+            $this->command->info('Super admin de respaldo creado:');
+            $this->command->info('  Correo: superadmin@test.com');
+            $this->command->info('  Contraseña: SuperAdmin2025');
+            $this->command->info('  Rol: Administrador');
+        } else {
+            $this->command->info('El super admin superadmin@test.com ya existe.');
         }
     }
 }

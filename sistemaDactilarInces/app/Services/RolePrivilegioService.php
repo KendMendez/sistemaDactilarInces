@@ -11,31 +11,19 @@ class RolePrivilegioService
     {
         $decryptedRoleId = Crypt::decrypt($roleId);
 
-        $results = RolePrivilegio::select(
-            'role_privilegios.id as rolePrivilegioId',
-            'roles.id as roleId',
-            'privilegios.id as privilegioId',
-            'privilegio'
-        )
-            ->join('roles', 'roles.id', '=', 'role_privilegios.id_role')
-            ->join('privilegios', 'privilegios.id', '=', 'role_privilegios.id_privilegio')
-            ->where('id_role', '=', $decryptedRoleId)
-            ->get()
-            ->map(function ($rolePrivilegioTemp) {
-                $privilegioId = Crypt::encrypt($rolePrivilegioTemp->privilegioId);
-                $roleId = Crypt::encrypt($rolePrivilegioTemp->roleId);
-                $rolePrivilegioId = Crypt::encrypt($rolePrivilegioTemp->rolePrivilegioId);
+        $assignedIds = RolePrivilegio::where('id_role', $decryptedRoleId)
+            ->pluck('id_privilegio')
+            ->toArray();
 
-                unset($rolePrivilegioTemp->privilegioId, $rolePrivilegioTemp->roleId, $rolePrivilegioTemp->rolePrivilegioId);
+        $all = \App\Models\Privilegio::orderBy('privilegio')->get()->map(function ($p) use ($assignedIds) {
+            return [
+                'privilegioId' => Crypt::encrypt($p->id),
+                'privilegio'   => $p->privilegio,
+                'selected'     => in_array($p->id, $assignedIds),
+            ];
+        })->toArray();
 
-                $rolePrivilegioTemp->privilegioId = $privilegioId;
-                $rolePrivilegioTemp->roleId = $roleId;
-                $rolePrivilegioTemp->rolePrivilegioId = $rolePrivilegioId;
-
-                return $rolePrivilegioTemp;
-            })->toArray();
-
-        return $results;
+        return $all;
     }
 
     public function store(array $rolePrivilegio)
