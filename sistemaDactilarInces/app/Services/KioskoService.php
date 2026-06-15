@@ -97,8 +97,8 @@ class KioskoService
             return null;
         }
 
-        $w = 32;
-        $h = 32;
+        $w = 64;
+        $h = 64;
         $scannedNorm = $this->normalizeFingerprint($scannedImg, $w, $h);
         imagedestroy($scannedImg);
 
@@ -112,7 +112,7 @@ class KioskoService
             ->orWhereNotNull('huella_indice')
             ->get();
 
-        $bestScore = 1.0;
+        $bestScore = -1.0;
         $bestEmployee = null;
 
         foreach ($employees as $emp) {
@@ -131,15 +131,15 @@ class KioskoService
 
                 $score = $this->compareNormalized($scannedNorm, $storedNorm);
 
-                if ($score < $bestScore) {
+                if ($score > $bestScore) {
                     $bestScore = $score;
                     $bestEmployee = $emp;
                 }
             }
         }
 
-        $threshold = 0.18;
-        if ($bestEmployee && $bestScore < $threshold) {
+        $threshold = 0.85;
+        if ($bestEmployee && $bestScore > $threshold) {
             return [
                 'id_empleado' => Crypt::encrypt($bestEmployee->id),
                 'nombre' => $bestEmployee->nombre . ' ' . $bestEmployee->apellido,
@@ -197,16 +197,22 @@ class KioskoService
 
     private function compareNormalized(array $a, array $b): float
     {
-        $totalDiff = 0.0;
-        $count = 0;
-        $w = count($a);
-        for ($x = 0; $x < $w; $x++) {
-            $h = count($a[$x]);
-            for ($y = 0; $y < $h; $y++) {
-                $totalDiff += abs($a[$x][$y] - $b[$x][$y]);
-                $count++;
-            }
+        $flatA = array_merge(...$a);
+        $flatB = array_merge(...$b);
+        $n = count($flatA);
+        $meanA = array_sum($flatA) / $n;
+        $meanB = array_sum($flatB) / $n;
+        $dot = 0.0;
+        $normA = 0.0;
+        $normB = 0.0;
+        for ($i = 0; $i < $n; $i++) {
+            $da = $flatA[$i] - $meanA;
+            $db = $flatB[$i] - $meanB;
+            $dot += $da * $db;
+            $normA += $da * $da;
+            $normB += $db * $db;
         }
-        return $count > 0 ? $totalDiff / $count : 1.0;
+        $denom = sqrt($normA * $normB);
+        return $denom < 1e-10 ? 0.0 : $dot / $denom;
     }
 }
