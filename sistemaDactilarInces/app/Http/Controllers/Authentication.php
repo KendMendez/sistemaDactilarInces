@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\Message;
 use App\Models\Empleado;
+use App\Models\Privilegio;
 use App\Services\EmpleadoAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,6 +50,22 @@ class Authentication extends Controller
 
             $this->authService->registerAttempt($correo, $req, true, $authenticated['empleado'] ?? null);
 
+            $user = $authenticated['empleado'] ?? null;
+            if ($user && isset($user['id'])) {
+                $userModel = Empleado::find($user['id']);
+                if ($userModel) {
+                    $userModel->load('roles.privilegios');
+                    $empleadoRoles = $userModel->roles->pluck('role')->toArray();
+                    if (in_array('Administrador', $empleadoRoles)) {
+                        $privilegios = Privilegio::pluck('privilegio')->values();
+                        $campos = Privilegio::pluck('campo')->unique()->values();
+                    } else {
+                        $privilegios = $userModel->roles->flatMap->privilegios->pluck('privilegio')->unique()->values();
+                        $campos = $userModel->roles->flatMap->privilegios->pluck('campo')->unique()->values();
+                    }
+                }
+            }
+
             $cookie = $this->authService->createSessionCookie($authenticated['token']);
 
             return response()->json([
@@ -57,6 +74,8 @@ class Authentication extends Controller
                 'results' => [
                     'empleado' => $authenticated['empleado'] ?? null,
                     'token' => $authenticated['token'] ?? null,
+                    'privilegios' => $privilegios ?? [],
+                    'campos' => $campos ?? [],
                 ],
             ], 200)->withCookie($cookie);
 
@@ -74,15 +93,22 @@ class Authentication extends Controller
     {
         try {
             /** @var Empleado $user */
-            $user = auth()->user();
+            $user = request()->user();
             if (! $user) {
                 return response()->json(['error' => 1, 'msg' => 'No autenticado'], 401);
             }
 
             $user->load('roles.privilegios');
 
-            $privilegios = $user->roles->flatMap->privilegios->pluck('privilegio')->unique()->values();
-            $campos = $user->roles->flatMap->privilegios->pluck('campo')->unique()->values();
+            $empleadoRoles = $user->roles->pluck('role')->toArray();
+
+            if (in_array('Administrador', $empleadoRoles)) {
+                $privilegios = Privilegio::pluck('privilegio')->values();
+                $campos = Privilegio::pluck('campo')->unique()->values();
+            } else {
+                $privilegios = $user->roles->flatMap->privilegios->pluck('privilegio')->unique()->values();
+                $campos = $user->roles->flatMap->privilegios->pluck('campo')->unique()->values();
+            }
 
             return response()->json([
                 'error' => 0,

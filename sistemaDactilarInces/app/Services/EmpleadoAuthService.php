@@ -46,6 +46,7 @@ class EmpleadoAuthService
                 'msg' => $message,
                 'error' => $errorCode,
                 'empleado' => [
+                    'id' => $foundEmployee['id'],
                     'nombre' => $foundEmployee['nombre'],
                     'apellido' => $foundEmployee['apellido'],
                 ],
