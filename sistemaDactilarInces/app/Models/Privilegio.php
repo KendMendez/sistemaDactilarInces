@@ -12,6 +12,7 @@ class Privilegio extends Model
 
     protected $fillable = [
         'privilegio',
+        'campo',
     ];
 
     public function roles(): BelongsToMany

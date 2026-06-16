@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\Message;
+use App\Models\Empleado;
 use App\Services\EmpleadoAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 
 class Authentication extends Controller
@@ -61,6 +63,40 @@ class Authentication extends Controller
         } catch (\Exception $e) {
             $this->authService->registerAttempt($req->input('correo'), $req, false);
 
+            return response()->json([
+                'error' => 1,
+                'msg' => Message::exception(),
+            ], 500);
+        }
+    }
+
+    public function me(): JsonResponse
+    {
+        try {
+            /** @var Empleado $user */
+            $user = auth()->user();
+            if (! $user) {
+                return response()->json(['error' => 1, 'msg' => 'No autenticado'], 401);
+            }
+
+            $user->load('roles.privilegios');
+
+            $privilegios = $user->roles->flatMap->privilegios->pluck('privilegio')->unique()->values();
+            $campos = $user->roles->flatMap->privilegios->pluck('campo')->unique()->values();
+
+            return response()->json([
+                'error' => 0,
+                'empleado' => [
+                    'id' => Crypt::encrypt($user->id),
+                    'nombre' => $user->nombre,
+                    'apellido' => $user->apellido,
+                    'correo' => $user->correo,
+                ],
+                'roles' => $user->roles->pluck('role'),
+                'privilegios' => $privilegios,
+                'campos' => $campos,
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'error' => 1,
                 'msg' => Message::exception(),

@@ -15,10 +15,11 @@ class RolePrivilegioService
             ->pluck('id_privilegio')
             ->toArray();
 
-        $all = \App\Models\Privilegio::orderBy('privilegio')->get()->map(function ($p) use ($assignedIds) {
+        $all = \App\Models\Privilegio::orderBy('campo')->orderBy('privilegio')->get()->map(function ($p) use ($assignedIds) {
             return [
                 'privilegioId' => Crypt::encrypt($p->id),
                 'privilegio'   => $p->privilegio,
+                'campo'        => $p->campo,
                 'selected'     => in_array($p->id, $assignedIds),
             ];
         })->toArray();

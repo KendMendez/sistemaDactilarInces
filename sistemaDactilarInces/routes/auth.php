@@ -5,5 +5,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [Authentication::class, 'login']);
 Route::middleware('jwt.auth')->group(function () {
+    Route::get('/me', [Authentication::class, 'me']);
     Route::post('/logout', [Authentication::class, 'logout']);
 });

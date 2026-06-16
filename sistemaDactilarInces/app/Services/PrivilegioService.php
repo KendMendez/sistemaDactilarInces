@@ -10,7 +10,7 @@ class PrivilegioService
 {
     public function index()
     {
-        $privilegios = Privilegio::orderBy('privilegio')->get()->map(function ($privilegioTemp) {
+        $privilegios = Privilegio::orderBy('campo')->orderBy('privilegio')->get()->map(function ($privilegioTemp) {
             $cryptedId = Crypt::encrypt($privilegioTemp->id);
             $privilegioTemp->privilegioId = $cryptedId;
             unset($privilegioTemp->id);
