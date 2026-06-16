@@ -165,23 +165,130 @@ return response()->json([
 
 ## Project Status
 
-### Implemented
-- JWT Authentication (login, logout, forgot/reset password)
-- EmpleadoAuthService with proper naming
-- JwtAuthMiddleware
-- LoginLog for audit
+### Goal
+Agrupar privilegios por `campo` en el formulario de roles, filtrar menú/secciones según privilegios del usuario, y extender `hasPrivilege()` condicional a nivel de componentes/botones en toda la UI.
 
-### Pending (see tareas.md)
-- CRUD for all entities
-- Middleware for roles/privileges
-- Full API implementation
+### Constraints & Preferences
+- Backend: `C:/xampp/htdocs/sistemaDactilarInces` (Laravel)
+- Frontend: `C:/UISistemaDactilarInces` (Angular)
+- API URL: `http://localhost/sistemaDactilarInces/public/api`
+- Forgot/reset password completamente eliminado.
+- Foreign keys encriptadas client-side, desencriptadas server-side.
+- Kiosko: captura de huella → PNG → matching server-side GD 1:N → POST asistencia → anti-spam + reglas de horario.
+- Aprobación es solo cambio de `status`.
+- Rutas Kiosko protegidas por header `X-Kiosko-Key`.
+- Inasistencias automáticas a las 18:00 saltando fines de semana y feriados.
+- `horarios.dia` es JSON array.
+- Contraseña mínimo 8 caracteres; identificación solo dígitos.
+- GD extension habilitada.
+- `PrivilegioMiddleware` omite chequeo de privilegio si el rol es "Administrador".
+- `Crypt::encrypt()` es no-determinístico (IV aleatorio) — no se pueden comparar IDs encriptados entre requests.
+- FullCalendar v6.1.20 (CSS inyectado vía JS runtime, sin archivos `.css` en npm).
+- PHP timezone debe ser `America/Caracas` (Venezuela UTC-4).
+- Privilegios tienen campo `campo` para agrupar visualmente en la UI.
+- Menú principal se filtra según `campos` del usuario autenticado.
+- No se usa guard de rutas para filtrar por privilegios — se maneja con `hasPrivilege()` condicional en templates y el menú ya filtrado, más el middleware del backend como defensa real.
+- Las rutas protegidas por JWT se mantienen con `authGuard` únicamente.
+- `auth.ts` `hasPrivilege()` carga `privilegios` desde `localStorage` en el constructor para tener datos disponibles inmediatamente en navegaciones subsecuentes.
+
+### Implemented Features
+- JWT Authentication (login, logout)
+- EmpleadoAuthService with proper naming
+- JwtAuthMiddleware, PrivilegioMiddleware, KioskoMiddleware
+- LoginLog for audit
+- CRUD: Cargos, Roles, Empleados, Horarios, Feriados, Asistencias, Inasistencias, Aprobaciones
+- Kiosko module: fingerprint capture, GD matching, attendance POST
+- Privilege system: campo grouping, menu filtering, per-component visibility
+- FullCalendar v6 feriados
+- Inasistencias automáticas via cron dailyAt('18:00')
+- Super admin backup seeder: `superadmin@test.com` / `SuperAdmin2025`
+
+### Known Issues / In Progress
+- Opcache en XAMPP puede servir bytecode compilado viejo tras cambios en backend. Solución: reiniciar Apache (services.msc → Apache → Restart) o llamar `opcache_reset()` temporal.
 
 ---
 
 ## Key Files
-- Routes: `routes/auth.php`, `routes/api.php`
-- Auth Service: `app/Services/EmpleadoAuthService.php`
-- JWT Middleware: `app/Http/Middleware/JwtAuthMiddleware.php`
-- Auth Controller: `app/Http/Controllers/Authentication.php`
+
+### Backend (Laravel)
+| File | Description |
+|------|-------------|
+| `routes/auth.php` | Auth routes (login, me, logout) |
+| `routes/api.php` | Main API routes (CRUD, kiosko, etc.) |
+| `app/Http/Controllers/Authentication.php` | Login/logout/me — `login()` retorna privilegios+campos |
+| `app/Services/EmpleadoAuthService.php` | Auth logic, returns `empleado` array con `id` incluido |
+| `app/Http/Middleware/PrivilegioMiddleware.php` | Privilege check, bypass si rol "Administrador" |
+| `app/Http/Middleware/KioskoMiddleware.php` | Valida `X-Kiosko-Key` header |
+| `app/Http/Middleware/JwtAuthMiddleware.php` | JWT validation |
+| `app/Http/Controllers/RolePrivilegioController.php` | `findPrivilegiosByRoleId()` retorna todos con `selected: bool` |
+| `app/Services/EmpleadoService.php` | CRUD + búsqueda + validación de imagen/huella |
+| `app/Services/KioskoService.php` | Matching GD, Pearson correlation, threshold 0.85 |
+| `database/seeders/PrivilegeSeeder.php` | Todos los privilegios con `campo` |
+| `database/seeders/FeriadoSeeder.php` | 83 feriados venezolanos 2025–2030 |
+| `config/app.php` | Timezone `America/Caracas` |
+
+### Frontend (Angular)
+| File | Description |
+|------|-------------|
+| `src/app/services/auth.ts` | `login()` guarda privilegios/campos en memoria + localStorage; `hasPrivilege()` / `hasCampo()` |
+| `src/app/app.ts` | Filtra `menuItems` según `campos` via `loadPrivileges()` en `ngOnInit` + `NavigationEnd` |
+| `src/app/components/*/` | Cada componente inyecta `Auth` y usa `@if(auth.hasPrivilege('ver X'))` |
+
+### Other
 - Good practices: `.agents/skills/buenasPracticas_SKILL.md`
-- Pending tasks: `tareas.md`
+
+---
+
+## Key Decisions
+
+### Privilege System
+- **Phase 3 approach**: endpoint single-request retornando todos los privilegios con `selected: bool` — soluciona no-determinismo de `Crypt::encrypt()`.
+- **Campo column**: nueva columna en BD para agrupar visualmente en UI.
+- **No route guards for privileges**: menú filtrado por `campos` + `hasPrivilege()` condicional en templates + middleware backend.
+- **Privilegios en login**: `POST /login` retorna privilegios + campos directamente, eliminando segunda llamada a `/me`.
+
+### Kiosko
+- **Matching**: 64×64 + Pearson correlation (0.0–1.0, score alto = mejor match). Threshold 0.85.
+- **Imagen**: resize a 64×64, validación de varianza < 0.01 rechaza.
+
+### Technical
+- **FullCalendar v6.1.20**: CSS vía JS runtime (sin archivos CSS). Handlers deben llamar `cdr.detectChanges()`.
+- **Timezone**: `America/Caracas` (Venezuela UTC-4). Config en `config/app.php` + `php.ini`.
+- **Encryption**: `Crypt::encrypt()` no-determinístico — endpoints single-request computan IDs consistentemente.
+
+---
+
+## Critical Context
+
+| Topic | Detail |
+|-------|--------|
+| `Crypt::encrypt()` | No-determinístico (IV aleatorio). No comparar IDs entre requests. |
+| FullCalendar | v6.1.20, CSS via JS runtime. Corre sobre Preact fuera del zone de Angular — usar `cdr.detectChanges()`. |
+| PHP Timezone | Era `Europe/Berlin` (UTC+2) — ahora `America/Caracas`. |
+| XAMPP Opcache | Cachea bytecode compilado. Reiniciar Apache tras cambios en backend. |
+| Kiosko Matching | Pearson correlation, threshold 0.85 (score alto = mejor match). |
+| Admin Bypass | `PrivilegioMiddleware` y `Authentication` retornan TODOS los privilegios si rol "Administrador". |
+| `hasPrivilege()` | Lee de memoria (cargado desde login response o localStorage), fallback a localStorage. |
+| Menu Filter | `loadPrivileges()` en `ngOnInit` y `NavigationEnd`. Solo lee localStorage, sin HTTP. |
+| Login Flow | `login()` → guarda privilegios en memoria+localStorage → navegación → `NavigationEnd` → `loadPrivileges()` filtra menú |
+
+---
+
+## Setup (laptop after pull)
+
+```bash
+# Backend
+cd C:/xampp/htdocs/sistemaDactilarInces
+git pull origin devKend
+composer install
+php artisan migrate
+php artisan db:seed --class=PrivilegeSeeder
+
+# Frontend
+cd C:/UISistemaDactilarInces
+git pull origin devKend
+npm install
+npx ng build
+
+# Restart Apache (services.msc → Apache → Restart)
+```
